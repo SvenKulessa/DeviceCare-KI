@@ -31,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.CloudQueue
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.PlayArrow
@@ -87,6 +88,7 @@ fun InspectionScreen(
   onSettingsMessage: (String?) -> Unit,
   onOpenBatteryMonitor: () -> Unit,
   onOpenAiAdvisor: () -> Unit,
+  onOpenCloudSync: () -> Unit,
   onOpenAppPermissions: () -> Unit,
   onOpenRoadmap: () -> Unit,
   modifier: Modifier = Modifier,
@@ -133,6 +135,7 @@ fun InspectionScreen(
             onStartInspection = onStartInspection,
             onOpenBatteryMonitor = onOpenBatteryMonitor,
             onOpenAiAdvisor = onOpenAiAdvisor,
+            onOpenCloudSync = onOpenCloudSync,
             onOpenRoadmap = onOpenRoadmap,
             compact = compact,
           )
@@ -322,6 +325,7 @@ private fun HeroInspectionCard(
   onStartInspection: () -> Unit,
   onOpenBatteryMonitor: () -> Unit,
   onOpenAiAdvisor: () -> Unit,
+  onOpenCloudSync: () -> Unit,
   onOpenRoadmap: () -> Unit,
   compact: Boolean,
 ) {
@@ -440,6 +444,20 @@ private fun HeroInspectionCard(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text("KI-Berater")
+              }
+
+              FilledTonalButton(
+                onClick = onOpenCloudSync,
+                modifier =
+                  Modifier.minimumInteractiveComponentSize().testTag("open_cloud_sync_button"),
+              ) {
+                Icon(
+                  imageVector = Icons.Filled.CloudQueue,
+                  contentDescription = null,
+                  modifier = Modifier.size(18.dp),
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Cloud-Sync")
               }
             }
           } else {

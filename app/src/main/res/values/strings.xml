@@ -17,4 +17,7 @@
     <string name="hero_subtitle">On-Demand Akku- &amp; Berechtigungsprüfung ohne Hintergrund-Scans, ohne Rohpaket-Speicherung und ohne erfundene Risiko-Scores.</string>
     <string name="empty_search_title">Keine Aufgaben oder Pläne gefunden</string>
     <string name="empty_search_subtitle">Passe deinen Suchbegriff oder den aktiven Status-/Kategorie-Filter an.</string>
+    <string name="privacy_ai_title">KI-Datenschutz-Analyse</string>
+    <string name="privacy_ai_analyze_button">Datenschutz-Tipps mit Gemini erstellen</string>
+    <string name="privacy_ai_retry_button">Erneut analysieren</string>
 </resources>

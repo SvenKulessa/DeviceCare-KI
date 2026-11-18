@@ -61,6 +61,7 @@ import com.example.ui.screens.AiAdvisorScreen
 import com.example.ui.screens.AppPermissionsScreen
 import com.example.ui.screens.ArchitectureScreen
 import com.example.ui.screens.BatteryDashboardScreen
+import com.example.ui.screens.CloudSyncScreen
 import com.example.ui.screens.DesignSystemScreen
 import com.example.ui.screens.InspectionScreen
 import com.example.ui.screens.RoadmapScreen
@@ -72,6 +73,7 @@ object Routes {
   const val ROUTE_INSPECTION = "inspection"
   const val ROUTE_BATTERY = "battery"
   const val ROUTE_AI_ADVISOR = "ai_advisor"
+  const val ROUTE_CLOUD_SYNC = "cloud_sync"
   const val ROUTE_APPS = "apps"
   const val ROUTE_ROADMAP = "roadmap"
   const val ROUTE_ARCHITECTURE = "architecture"
@@ -135,6 +137,7 @@ fun DeviceCareApp(
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val aiState by aiAdvisorViewModel.uiState.collectAsStateWithLifecycle()
+  val privacyAnalysisState by aiAdvisorViewModel.privacyAnalysisState.collectAsStateWithLifecycle()
   val navController = rememberNavController()
   val navBackStackEntry by navController.currentBackStackEntryAsState()
   val currentDestination = navBackStackEntry?.destination
@@ -269,6 +272,10 @@ fun DeviceCareApp(
                       performHaptic()
                       navController.navigate(Routes.ROUTE_AI_ADVISOR)
                     },
+                    onOpenCloudSync = {
+                      performHaptic()
+                      navController.navigate(Routes.ROUTE_CLOUD_SYNC)
+                    },
                     onOpenAppPermissions = { navigateTopLevel(Routes.ROUTE_APPS) },
                     onOpenRoadmap = { navigateTopLevel(Routes.ROUTE_ROADMAP) },
                   )
@@ -308,12 +315,28 @@ fun DeviceCareApp(
                   )
                 }
 
+                composable(Routes.ROUTE_CLOUD_SYNC) {
+                  CloudSyncScreen(
+                    onBack = { navController.popBackStack() },
+                    onShowSnackbar = ::showMessage,
+                  )
+                }
+
                 composable(Routes.ROUTE_APPS) {
                   AppPermissionsScreen(
                     uiState = uiState,
+                    privacyAnalysisState = privacyAnalysisState,
                     onStartScan = {
                       performHaptic()
                       viewModel.startInstalledAppsScan()
+                    },
+                    onAnalyzePrivacy = {
+                      performHaptic()
+                      aiAdvisorViewModel.analyzePermissionsPrivacy(uiState.installedAppsScanResult)
+                    },
+                    onClearPrivacyAnalysis = {
+                      performHaptic()
+                      aiAdvisorViewModel.clearPrivacyAnalysis()
                     },
                     onSearchQueryChange = viewModel::updateAppSearchQuery,
                     onSelectFilter = { filter ->

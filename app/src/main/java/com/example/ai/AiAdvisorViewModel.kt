@@ -51,7 +51,11 @@ data class AiAdvisorUiState(
     get() = status is AiUiState.Loading || status is AiUiState.Streaming
 }
 
-class AiAdvisorViewModel : ViewModel() {
+class AiAdvisorViewModel internal constructor(
+  private val privacyAnalyzer: PermissionPrivacyAnalyzerService,
+) : ViewModel() {
+
+  constructor() : this(GeminiPermissionPrivacyAnalyzerService())
 
   private val messageIdGen = AtomicLong(1L)
 
@@ -74,6 +78,52 @@ class AiAdvisorViewModel : ViewModel() {
 
   private val _uiState = MutableStateFlow(AiAdvisorUiState())
   val uiState: StateFlow<AiAdvisorUiState> = _uiState.asStateFlow()
+
+  private val _privacyAnalysisState =
+    MutableStateFlow<PermissionPrivacyAnalysisState>(PermissionPrivacyAnalysisState.Idle)
+  val privacyAnalysisState: StateFlow<PermissionPrivacyAnalysisState> =
+    _privacyAnalysisState.asStateFlow()
+
+  fun analyzePermissionsPrivacy(scanResult: InstalledAppsScanResult?) {
+    if (scanResult == null || scanResult.errorMessage != null) {
+      _privacyAnalysisState.value =
+        PermissionPrivacyAnalysisState.Error(
+          "Bitte zuerst einen lokalen App-Scan durchführen, bevor Gemini analysiert."
+        )
+      return
+    }
+    if (_privacyAnalysisState.value is PermissionPrivacyAnalysisState.Loading) return
+
+    _privacyAnalysisState.value = PermissionPrivacyAnalysisState.Loading
+    viewModelScope.launch {
+      try {
+        val report =
+          withTimeout(REQUEST_TIMEOUT_MILLIS) {
+            privacyAnalyzer.analyzeGrantedPermissions(scanResult)
+          }
+        _privacyAnalysisState.value = PermissionPrivacyAnalysisState.Success(report)
+      } catch (e: TimeoutCancellationException) {
+        Log.e(TAG, "Permission privacy analysis timed out", e)
+        _privacyAnalysisState.value =
+          PermissionPrivacyAnalysisState.Error(
+            "Zeitüberschreitung nach 60 Sekunden. Bitte Verbindung prüfen und erneut versuchen."
+          )
+      } catch (e: CancellationException) {
+        throw e
+      } catch (e: Exception) {
+        Log.e(TAG, "Permission privacy analysis failed", e)
+        _privacyAnalysisState.value =
+          PermissionPrivacyAnalysisState.Error(
+            e.localizedMessage?.takeIf { it.isNotBlank() }
+              ?: "Datenschutz-Analyse mit Gemini fehlgeschlagen."
+          )
+      }
+    }
+  }
+
+  fun clearPrivacyAnalysis() {
+    _privacyAnalysisState.value = PermissionPrivacyAnalysisState.Idle
+  }
 
   fun toggleIncludeAnonymizedContext() {
     _uiState.update { it.copy(includeAnonymizedContext = !it.includeAnonymizedContext) }

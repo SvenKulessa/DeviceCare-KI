@@ -37,6 +37,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
@@ -56,6 +57,7 @@ import androidx.compose.material.icons.outlined.LayersClear
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Sensors
 import androidx.compose.material.icons.outlined.WarningAmber
@@ -91,6 +93,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -108,6 +111,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.R
+import com.example.ai.PermissionPrivacyAnalysisState
+import com.example.ai.PrivacyAnalysisReport
+import com.example.ai.PrivacyRecommendationPriority
+import com.example.ai.PrivacySuggestion
 import com.example.devicecare.SettingsLaunchResult
 import com.example.devicecare.appPermissionSettingsIntent
 import com.example.devicecare.openDeviceSettings
@@ -135,6 +142,9 @@ fun AppPermissionsScreen(
   onToggleSectionCollapsed: (AppSectionCategory) -> Unit,
   onShowSnackbar: (String) -> Unit,
   modifier: Modifier = Modifier,
+  privacyAnalysisState: PermissionPrivacyAnalysisState = PermissionPrivacyAnalysisState.Idle,
+  onAnalyzePrivacy: () -> Unit = {},
+  onClearPrivacyAnalysis: () -> Unit = {},
 ) {
   val context = LocalContext.current
   val lifecycleOwner = LocalLifecycleOwner.current
@@ -382,6 +392,16 @@ fun AppPermissionsScreen(
               )
             }
 
+            item(key = "gemini_privacy_card", span = { GridItemSpan(columns) }) {
+              GeminiPrivacyAdvisorCard(
+                scanResult = scanResult,
+                analysisState = privacyAnalysisState,
+                onAnalyze = onAnalyzePrivacy,
+                onReset = onClearPrivacyAnalysis,
+                onOpenAppSettings = { app -> openSystemAppInfo(app) },
+              )
+            }
+
             uiState.categorizedAppSections.forEach { group ->
               val isCollapsed = group.category in uiState.collapsedAppSections
               item(
@@ -607,6 +627,444 @@ private fun ScanSummaryHeader(
             style = MonoTokenTextStyle,
             color = MaterialTheme.colorScheme.primary,
           )
+        }
+      }
+    }
+  }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun GeminiPrivacyAdvisorCard(
+  scanResult: InstalledAppsScanResult,
+  analysisState: PermissionPrivacyAnalysisState,
+  onAnalyze: () -> Unit,
+  onReset: () -> Unit,
+  onOpenAppSettings: (InstalledAppPermissionInfo) -> Unit,
+) {
+  val accentBrush =
+    Brush.linearGradient(
+      colors =
+        listOf(
+          MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f),
+          MaterialTheme.colorScheme.surfaceContainerLow,
+        )
+    )
+
+  Card(
+    modifier = Modifier.fillMaxWidth().testTag("gemini_privacy_card"),
+    shape = MaterialTheme.shapes.extraLarge,
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
+  ) {
+    Column(
+      modifier = Modifier.fillMaxWidth().background(accentBrush).padding(16.dp),
+      verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+      ) {
+        Surface(
+          shape = CircleShape,
+          color = MaterialTheme.colorScheme.primaryContainer,
+        ) {
+          Icon(
+            imageVector = Icons.Filled.AutoAwesome,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = Modifier.padding(10.dp).size(20.dp),
+          )
+        }
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+          Text(
+            text = stringResource(R.string.privacy_ai_title),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.semantics { heading() },
+          )
+          Text(
+            text = "Gemini 3.8 Flash · Opt-in Empfehlungen für gewährte Rechte",
+            style = MonoTokenTextStyle,
+            color = MaterialTheme.colorScheme.primary,
+          )
+        }
+        if (analysisState is PermissionPrivacyAnalysisState.Success) {
+          IconButton(
+            onClick = onReset,
+            modifier =
+              Modifier.minimumInteractiveComponentSize().testTag("clear_privacy_analysis_button"),
+          ) {
+            Icon(
+              imageVector = Icons.Filled.Close,
+              contentDescription = "Analyse schließen",
+            )
+          }
+        }
+      }
+
+      when (analysisState) {
+        is PermissionPrivacyAnalysisState.Idle -> {
+          Text(
+            text =
+              "Lass deine ${scanResult.appsWithDangerousCount} App(s) mit gewährten gefährlichen Berechtigungen on-demand von Gemini auswerten, um verständliche Vorschläge zur Härtung der Privatsphäre zu erhalten.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+          Surface(
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.65f),
+          ) {
+            Row(
+              modifier = Modifier.fillMaxWidth().padding(10.dp),
+              horizontalArrangement = Arrangement.spacedBy(8.dp),
+              verticalAlignment = Alignment.CenterVertically,
+            ) {
+              Icon(
+                imageVector = Icons.Outlined.PrivacyTip,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.size(16.dp),
+              )
+              Text(
+                text =
+                  "Nur nach deinem Tipp werden App-Namen & gewährte Berechtigungen über Firebase AI Logic an Gemini gesendet.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+              )
+            }
+          }
+          Button(
+            onClick = onAnalyze,
+            modifier =
+              Modifier.fillMaxWidth()
+                .minimumInteractiveComponentSize()
+                .testTag("analyze_privacy_button"),
+          ) {
+            Icon(
+              imageVector = Icons.Filled.AutoAwesome,
+              contentDescription = null,
+              modifier = Modifier.size(18.dp),
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(stringResource(R.string.privacy_ai_analyze_button))
+          }
+        }
+
+        is PermissionPrivacyAnalysisState.Loading -> {
+          Row(
+            modifier =
+              Modifier.fillMaxWidth().padding(vertical = 8.dp).testTag("privacy_analysis_loading"),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+          ) {
+            CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.5.dp)
+            Column(modifier = Modifier.weight(1f)) {
+              Text(
+                text = "Gemini wertet Berechtigungen aus...",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+              )
+              Text(
+                text =
+                  "Prüft ${scanResult.appsWithDangerousCount} Apps auf kritische Kombinationen (Kamera, Standort, Mikrofon).",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+              )
+            }
+          }
+        }
+
+        is PermissionPrivacyAnalysisState.Error -> {
+          Surface(
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.errorContainer,
+            modifier = Modifier.fillMaxWidth().testTag("privacy_analysis_error"),
+          ) {
+            Column(
+              modifier = Modifier.fillMaxWidth().padding(12.dp),
+              verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+              Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+              ) {
+                Icon(
+                  imageVector = Icons.Outlined.WarningAmber,
+                  contentDescription = null,
+                  tint = MaterialTheme.colorScheme.onErrorContainer,
+                  modifier = Modifier.size(18.dp),
+                )
+                Text(
+                  text = analysisState.message,
+                  style = MaterialTheme.typography.bodySmall,
+                  color = MaterialTheme.colorScheme.onErrorContainer,
+                )
+              }
+            }
+          }
+          FilledTonalButton(
+            onClick = onAnalyze,
+            modifier =
+              Modifier.fillMaxWidth()
+                .minimumInteractiveComponentSize()
+                .testTag("analyze_privacy_button"),
+          ) {
+            Icon(
+              imageVector = Icons.Filled.Refresh,
+              contentDescription = null,
+              modifier = Modifier.size(18.dp),
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(stringResource(R.string.privacy_ai_retry_button))
+          }
+        }
+
+        is PermissionPrivacyAnalysisState.Success -> {
+          PrivacyReportContent(
+            report = analysisState.report,
+            scannedApps = scanResult.apps,
+            onAnalyzeAgain = onAnalyze,
+            onOpenAppSettings = onOpenAppSettings,
+          )
+        }
+      }
+    }
+  }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PrivacyReportContent(
+  report: PrivacyAnalysisReport,
+  scannedApps: List<InstalledAppPermissionInfo>,
+  onAnalyzeAgain: () -> Unit,
+  onOpenAppSettings: (InstalledAppPermissionInfo) -> Unit,
+) {
+  Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Surface(
+      shape = MaterialTheme.shapes.medium,
+      color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    ) {
+      Column(
+        modifier = Modifier.fillMaxWidth().padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        Text(
+          text =
+            "${report.analyzedAppCount} Apps · ${report.analyzedPermissionCount} gewährte Rechte analysiert" +
+              if (report.omittedDangerousAppCount > 0)
+                " (+${report.omittedDangerousAppCount} gekürzt)"
+              else "",
+          style = MonoTokenTextStyle,
+          color = MaterialTheme.colorScheme.primary,
+        )
+        Text(
+          text = report.summary,
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurface,
+          modifier = Modifier.testTag("privacy_analysis_summary"),
+        )
+      }
+    }
+
+    if (report.keyRisks.isNotEmpty()) {
+      Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+          text = "Wichtigste Beobachtungen",
+          style = MaterialTheme.typography.labelLarge,
+          color = MaterialTheme.colorScheme.onSurface,
+        )
+        report.keyRisks.forEach { risk ->
+          Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.Top,
+          ) {
+            Text(
+              text = "•",
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+              text = risk,
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+        }
+      }
+    }
+
+    if (report.suggestions.isNotEmpty()) {
+      Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+          text = "Empfohlene Schritte",
+          style = MaterialTheme.typography.labelLarge,
+          color = MaterialTheme.colorScheme.onSurface,
+        )
+        report.suggestions.forEachIndexed { index, suggestion ->
+          PrivacySuggestionCard(
+            index = index,
+            suggestion = suggestion,
+            scannedApps = scannedApps,
+            onOpenAppSettings = onOpenAppSettings,
+          )
+        }
+      }
+    }
+
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Text(
+        text = "Hinweis: KI-Orientierung, kein Malware-Urteil.",
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.weight(1f),
+      )
+      TextButton(
+        onClick = onAnalyzeAgain,
+        modifier =
+          Modifier.minimumInteractiveComponentSize().testTag("analyze_privacy_button"),
+      ) {
+        Icon(
+          imageVector = Icons.Filled.Refresh,
+          contentDescription = null,
+          modifier = Modifier.size(16.dp),
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text("Neu prüfen")
+      }
+    }
+  }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PrivacySuggestionCard(
+  index: Int,
+  suggestion: PrivacySuggestion,
+  scannedApps: List<InstalledAppPermissionInfo>,
+  onOpenAppSettings: (InstalledAppPermissionInfo) -> Unit,
+) {
+  val (badgeBg, badgeFg) =
+    when (suggestion.priority) {
+      PrivacyRecommendationPriority.HIGH ->
+        MaterialTheme.colorScheme.error to MaterialTheme.colorScheme.onError
+      PrivacyRecommendationPriority.MEDIUM ->
+        MaterialTheme.colorScheme.tertiary to MaterialTheme.colorScheme.onTertiary
+      PrivacyRecommendationPriority.LOW ->
+        MaterialTheme.colorScheme.secondary to MaterialTheme.colorScheme.onSecondary
+    }
+
+  Card(
+    modifier = Modifier.fillMaxWidth().testTag("privacy_suggestion_$index"),
+    shape = MaterialTheme.shapes.large,
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)),
+  ) {
+    Column(
+      modifier = Modifier.fillMaxWidth().padding(14.dp),
+      verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Surface(
+          shape = MaterialTheme.shapes.extraSmall,
+          color = badgeBg,
+        ) {
+          Text(
+            text = suggestion.priority.label,
+            style = MonoTokenTextStyle,
+            color = badgeFg,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+          )
+        }
+        if (!suggestion.targetPermission.isNullOrBlank()) {
+          Surface(
+            shape = MaterialTheme.shapes.extraSmall,
+            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+          ) {
+            Text(
+              text = suggestion.targetPermission,
+              style = MonoTokenTextStyle,
+              color = MaterialTheme.colorScheme.primary,
+              modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis,
+            )
+          }
+        }
+      }
+
+      Text(
+        text = suggestion.title,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurface,
+      )
+
+      Text(
+        text = suggestion.recommendation,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+
+      if (suggestion.affectedApps.isNotEmpty()) {
+        FlowRow(
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+          suggestion.affectedApps.forEach { appName ->
+            val matchedApp =
+              scannedApps.firstOrNull {
+                it.appName.equals(appName, ignoreCase = true) ||
+                  it.packageName.equals(appName, ignoreCase = true)
+              }
+            if (matchedApp != null) {
+              OutlinedButton(
+                onClick = { onOpenAppSettings(matchedApp) },
+                modifier = Modifier.minimumInteractiveComponentSize(),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+              ) {
+                Icon(
+                  imageVector = Icons.Filled.Settings,
+                  contentDescription = null,
+                  modifier = Modifier.size(14.dp),
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                  text = "${matchedApp.appName} · Rechte",
+                  style = MaterialTheme.typography.labelMedium,
+                  maxLines = 1,
+                  overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Icon(
+                  imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                  contentDescription = null,
+                  modifier = Modifier.size(14.dp),
+                )
+              }
+            } else {
+              Surface(
+                shape = MaterialTheme.shapes.small,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+              ) {
+                Text(
+                  text = appName,
+                  style = MaterialTheme.typography.labelSmall,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                )
+              }
+            }
+          }
         }
       }
     }

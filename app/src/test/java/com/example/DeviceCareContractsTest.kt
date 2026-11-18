@@ -20,6 +20,7 @@ import com.example.core.scoring.StaticDeviceModelRegistry
 import android.content.pm.PackageInfo
 import android.os.BatteryManager
 import com.example.ai.AiAdvisorViewModel
+import com.example.ai.GeminiPermissionPrivacyAnalyzerService
 import com.example.features.battery.BatteryDashboardSnapshot
 import com.example.features.battery.BatteryEvidenceMapper
 import com.example.features.battery.BatteryHealthCondition
@@ -442,5 +443,67 @@ class DeviceCareContractsTest {
     assertTrue(summary!!.contains("Kamera=1"))
     assertFalse(summary.contains(secretPkg))
     assertFalse(summary.contains("Secret App"))
+  }
+
+  @Test
+  fun permissionDigestBuilderPrioritizesCriticalUserAppsAndAppliesMaxCap() {
+    fun perm(name: String, cat: SensitivityCategory) =
+      GrantedDangerousPermission(name, name.substringAfterLast('.'), cat, null)
+
+    val safeApp =
+      InstalledAppPermissionInfo(
+        packageName = "com.example.safe",
+        appName = "Clean Calc",
+        isSystemApp = false,
+        totalRequestedPermissions = 1,
+        grantedDangerousPermissions = emptyList(),
+      )
+    val systemCamApp =
+      InstalledAppPermissionInfo(
+        packageName = "com.android.sys.cam",
+        appName = "System Camera",
+        isSystemApp = true,
+        totalRequestedPermissions = 2,
+        grantedDangerousPermissions =
+          listOf(perm("android.permission.CAMERA", SensitivityCategory.CAMERA)),
+      )
+    val userMultiApp =
+      InstalledAppPermissionInfo(
+        packageName = "com.example.social",
+        appName = "Social Recorder",
+        isSystemApp = false,
+        totalRequestedPermissions = 4,
+        grantedDangerousPermissions =
+          listOf(
+            perm("android.permission.CAMERA", SensitivityCategory.CAMERA),
+            perm("android.permission.RECORD_AUDIO", SensitivityCategory.MICROPHONE),
+            perm("android.permission.ACCESS_FINE_LOCATION", SensitivityCategory.LOCATION),
+          ),
+      )
+    val userCalApp =
+      InstalledAppPermissionInfo(
+        packageName = "com.example.planner",
+        appName = "Planner",
+        isSystemApp = false,
+        totalRequestedPermissions = 1,
+        grantedDangerousPermissions =
+          listOf(perm("android.permission.READ_CALENDAR", SensitivityCategory.CALENDAR)),
+      )
+
+    val scanResult =
+      InstalledAppsScanResult(
+        scannedAtMillis = 9_000L,
+        visiblePackageCount = 4,
+        apps = listOf(safeApp, userCalApp, systemCamApp, userMultiApp),
+      )
+
+    val digest = GeminiPermissionPrivacyAnalyzerService.buildPermissionDigestForGemini(scanResult, maxApps = 2)
+    assertEquals(2, digest.analyzedAppCount)
+    assertEquals(4, digest.analyzedPermissionCount)
+    assertEquals(1, digest.omittedDangerousAppCount)
+    assertTrue(digest.promptText.contains("Social Recorder (Nutzer-App)"))
+    assertTrue(digest.promptText.contains("System Camera (System-App)"))
+    assertFalse(digest.promptText.contains("Clean Calc"))
+    assertFalse(digest.promptText.contains("Planner (Nutzer-App)"))
   }
 }
