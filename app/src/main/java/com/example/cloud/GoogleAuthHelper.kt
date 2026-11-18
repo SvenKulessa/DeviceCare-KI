@@ -30,6 +30,15 @@ import kotlinx.coroutines.withContext
 
 private const val AUTH_TAG = "Auth"
 
+// Google Services generates this resource only when a real Firebase configuration is provided.
+// Keep development builds compilable but fail closed at sign-in when it is missing.
+private fun requiredWebClientId(context: Context): String {
+  val id = context.resources.getIdentifier("default_web_client_id", "string", context.packageName)
+  require(id != 0) { "Firebase-Web-Client-ID fehlt" }
+  return context.getString(id).takeIf { it.isNotBlank() }
+    ?: error("Firebase-Web-Client-ID ist leer")
+}
+
 internal fun FirebaseAuth.authStateFlow(): Flow<FirebaseUser?> = callbackFlow {
   val listener = FirebaseAuth.AuthStateListener { firebaseAuth -> trySend(firebaseAuth.currentUser) }
   addAuthStateListener(listener)
@@ -49,7 +58,7 @@ fun attemptAutoSignIn(
   }
   val clientId =
     try {
-      context.getString(R.string.default_web_client_id)
+      requiredWebClientId(context)
     } catch (_: Exception) {
       onUnauthenticated()
       return
@@ -91,7 +100,7 @@ fun onGoogleSignInClicked(
 ) {
   val clientId =
     try {
-      context.getString(R.string.default_web_client_id)
+      requiredWebClientId(context)
     } catch (_: Exception) {
       onAuthError("Google Sign-In Konfiguration fehlt: default_web_client_id nicht gefunden.")
       return

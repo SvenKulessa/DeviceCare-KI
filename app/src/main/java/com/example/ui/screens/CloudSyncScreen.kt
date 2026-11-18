@@ -87,6 +87,7 @@ import com.example.cloud.onGoogleSignInClicked
 import com.example.cloud.signOutFromGoogle
 import com.example.ui.theme.MonoTokenTextStyle
 import com.google.firebase.Firebase
+import com.google.firebase.FirebaseApp
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -101,17 +102,25 @@ fun CloudSyncScreen(
   onBack: () -> Unit,
   onShowSnackbar: (String) -> Unit,
   modifier: Modifier = Modifier,
-  auth: FirebaseAuth = Firebase.auth,
+  auth: FirebaseAuth? = null,
 ) {
   BackHandler(onBack = onBack)
 
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
   val credentialManager = remember(context) { CredentialManager.create(context) }
-  val currentUser by
-    auth.authStateFlow().collectAsStateWithLifecycle(initialValue = auth.currentUser)
-
-  val user = currentUser
+  // A missing google-services.json is a supported, fail-closed internal-build state.
+  // Never access Firebase.auth until a genuine FirebaseApp exists.
+  val configuredAuth = remember(context, auth) {
+    auth ?: FirebaseApp.getApps(context).firstOrNull()?.let { FirebaseAuth.getInstance(it) }
+  }
+  val user = if (configuredAuth == null) {
+    null
+  } else {
+    val currentUser by configuredAuth.authStateFlow()
+      .collectAsStateWithLifecycle(initialValue = configuredAuth.currentUser)
+    currentUser
+  }
   var showEditorDialog by remember { mutableStateOf(false) }
   var editingNote by remember { mutableStateOf<CareNote?>(null) }
 
@@ -194,6 +203,7 @@ fun CloudSyncScreen(
     if (user == null) {
       // Strict auth gate: no Firestore ViewModel, listener, or query is created here.
       CloudAuthGateContent(
+        isConfigured = configuredAuth != null,
         modifier = Modifier.fillMaxSize().padding(innerPadding),
         onSignedIn = { onShowSnackbar("Mit Google angemeldet.") },
       )
@@ -221,6 +231,7 @@ fun CloudSyncScreen(
 
 @Composable
 private fun CloudAuthGateContent(
+  isConfigured: Boolean,
   onSignedIn: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -231,8 +242,8 @@ private fun CloudAuthGateContent(
   var isLoading by remember { mutableStateOf(false) }
   var authError by remember { mutableStateOf<String?>(null) }
 
-  LaunchedEffect(Unit) {
-    attemptAutoSignIn(
+  LaunchedEffect(isConfigured) {
+    if (isConfigured) attemptAutoSignIn(
       context = context,
       credentialManager = credentialManager,
       onAuthSuccess = onSignedIn,
@@ -288,6 +299,17 @@ private fun CloudAuthGateContent(
           color = MaterialTheme.colorScheme.primary,
         )
 
+        if (!isConfigured) {
+          Text(
+            text = "Cloud-Sync derzeit nicht konfiguriert (NOT_PROVEN). " +
+              "Die App benötigt eine gültige Firebase-Konfiguration. " +
+              "Lokale Gerätedaten bleiben auf diesem Gerät.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.testTag("cloud_unconfigured_notice"),
+          )
+        }
+
         if (authError != null) {
           Surface(
             shape = MaterialTheme.shapes.medium,
@@ -321,7 +343,7 @@ private fun CloudAuthGateContent(
               onAuthCancelled = { isLoading = false },
             )
           },
-          enabled = !isLoading,
+          enabled = isConfigured && !isLoading,
           modifier =
             Modifier.fillMaxWidth()
               .minimumInteractiveComponentSize()

@@ -89,6 +89,7 @@ fun InspectionScreen(
   onOpenBatteryMonitor: () -> Unit,
   onOpenAiAdvisor: () -> Unit,
   onOpenCloudSync: () -> Unit,
+  onOpenSystemSecurity: () -> Unit,
   onOpenAppPermissions: () -> Unit,
   onOpenRoadmap: () -> Unit,
   modifier: Modifier = Modifier,
@@ -136,6 +137,7 @@ fun InspectionScreen(
             onOpenBatteryMonitor = onOpenBatteryMonitor,
             onOpenAiAdvisor = onOpenAiAdvisor,
             onOpenCloudSync = onOpenCloudSync,
+            onOpenSystemSecurity = onOpenSystemSecurity,
             onOpenRoadmap = onOpenRoadmap,
             compact = compact,
           )
@@ -326,6 +328,7 @@ private fun HeroInspectionCard(
   onOpenBatteryMonitor: () -> Unit,
   onOpenAiAdvisor: () -> Unit,
   onOpenCloudSync: () -> Unit,
+  onOpenSystemSecurity: () -> Unit,
   onOpenRoadmap: () -> Unit,
   compact: Boolean,
 ) {
@@ -458,6 +461,16 @@ private fun HeroInspectionCard(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text("Cloud-Sync")
+              }
+
+              FilledTonalButton(
+                onClick = onOpenSystemSecurity,
+                modifier = Modifier.minimumInteractiveComponentSize()
+                  .testTag("open_system_security_button"),
+              ) {
+                Icon(Icons.Filled.Security, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("System- & Google-Check")
               }
             }
           } else {
