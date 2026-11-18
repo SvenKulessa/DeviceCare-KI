@@ -64,6 +64,7 @@ import com.example.ui.screens.BatteryDashboardScreen
 import com.example.ui.screens.CloudSyncScreen
 import com.example.ui.screens.DesignSystemScreen
 import com.example.ui.screens.InspectionScreen
+import com.example.ui.screens.SystemSecurityFeatureScreen
 import com.example.ui.screens.RoadmapScreen
 import com.example.ui.screens.TaskDetailScreen
 import com.example.ui.theme.FormwerkTheme
@@ -74,6 +75,7 @@ object Routes {
   const val ROUTE_BATTERY = "battery"
   const val ROUTE_AI_ADVISOR = "ai_advisor"
   const val ROUTE_CLOUD_SYNC = "cloud_sync"
+  const val ROUTE_SYSTEM_SECURITY = "system_security"
   const val ROUTE_APPS = "apps"
   const val ROUTE_ROADMAP = "roadmap"
   const val ROUTE_ARCHITECTURE = "architecture"
@@ -276,6 +278,10 @@ fun DeviceCareApp(
                       performHaptic()
                       navController.navigate(Routes.ROUTE_CLOUD_SYNC)
                     },
+                    onOpenSystemSecurity = {
+                      performHaptic()
+                      navController.navigate(Routes.ROUTE_SYSTEM_SECURITY)
+                    },
                     onOpenAppPermissions = { navigateTopLevel(Routes.ROUTE_APPS) },
                     onOpenRoadmap = { navigateTopLevel(Routes.ROUTE_ROADMAP) },
                   )
@@ -320,6 +326,10 @@ fun DeviceCareApp(
                     onBack = { navController.popBackStack() },
                     onShowSnackbar = ::showMessage,
                   )
+                }
+
+                composable(Routes.ROUTE_SYSTEM_SECURITY) {
+                  SystemSecurityFeatureScreen(onBack = { navController.popBackStack() })
                 }
 
                 composable(Routes.ROUTE_APPS) {
