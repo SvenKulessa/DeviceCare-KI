@@ -27,7 +27,7 @@
   missing consumer integration. Requires separate package, test and approval.
 - Old `core/*` and `features/*` — functions already exist under target
   `app/src/main/java/com/example`; duplicating introduces conflicting contracts.
-- Old Gradle/AGP9.6 CI — target uses AGP 9.1.1 and Gradle 9.3.1.
+- Old Gradle/AGP9.6 CI — target uses AGP 9.1.1 and Gradle 9.3.1. Robolectric SDK 36\n  requires JDK 21, while Android app bytecode remains Java 11.
 - Old Play release AAB workflow — no proof that the historical release key,
   Play app identity and target Firebase project are bound to this new app.
 - No live patch lookup, Play Protect inference, background surveillance,
