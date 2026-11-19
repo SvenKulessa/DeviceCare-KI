@@ -69,7 +69,7 @@ object HardwareTestPolicy {
   fun canSample(sensorType: Int): Boolean = sensorType in allowedTypes
 
   fun status(registered: Boolean, values: FloatArray?): HardwareSampleStatus =
-    if (registered && !values.isNullOrEmpty() && values.all { it.isFinite() }) {
+    if (registered && values != null && values.isNotEmpty() && values.all { it.isFinite() }) {
       HardwareSampleStatus.OBSERVED
     } else {
       HardwareSampleStatus.NOT_PROVEN
@@ -147,8 +147,8 @@ object AndroidHardwareInventory {
     }
 
     var featureError: String? = null
-    val features: List<HardwareFeature>
-    val featureTotal: Int?
+    var features: List<HardwareFeature> = emptyList()
+    var featureTotal: Int? = null
     try {
       val pm = context.packageManager
       val observed = pm.systemAvailableFeatures.orEmpty().mapNotNull { it.name }.toSet()
