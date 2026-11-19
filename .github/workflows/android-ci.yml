@@ -14,6 +14,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  rethink-audit:
+    name: Rethink read-only audit — synthetic positive/negative tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout without persistent credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify Python runtime, compile and run synthetic tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 --version
+          python3 -m py_compile tools/rethink_audit/rethink_audit.py tools/rethink_audit/test_rethink_audit.py
+          python3 -m unittest discover -s tools/rethink_audit -p 'test_*.py' -v
+
   verify:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
