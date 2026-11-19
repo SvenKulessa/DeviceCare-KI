@@ -23,12 +23,13 @@ Semantic green is reserved for actual VERIFIED evidence, and amber for attention
 
 ### Source-image provenance
 
-The owner-approved raster renders from the design conversation, with local SHA-256 for integrity, are:
+The owner-approved raster renders (including the alternative early board) from the design conversation, with local SHA-256 for integrity, are:
 
 | Reference image | SHA-256 |
 |---|---|
 | `devicecare_ki_futuristisches_schildlogo.png` | `22194aaaa3922c56b73c536a099212fb910421953e71e3f9d55088eb2533b084` |
 | `devicecare_ki_markenboard_im_sci_fi_stil.png` | `111ee9185bdcf06462db6b93934f8529a3f82b56b253ad5fd0837cc3e1754e3b` |
+| `devicecare_ki_markenboard_im_weltraum.png` (earlier variant) | `39d57438d4e2ed1aefaf19134d7b2f72d61bee605c9e05418314f39bf9d387b1` |
 | `devicecare_ki_kosmische_android_sicherheit.png` | `132dd9484128d36ba72a6f54ad46a5c92cf24d0d66b43dca2da32379d2872cc2` |
 
 **Asset transfer note:** the original high-resolution PNG render bytes are not included in this initial git commit; preserve these SHA hashes when they are uploaded into `assets/branding/approved/source/`. The SVGs are fully versioned and used as normative *implementation sources* immediately. Never claim the PNGs were checked into Git when they were not.
