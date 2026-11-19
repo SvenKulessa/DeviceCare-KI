@@ -261,6 +261,11 @@ private fun InspectionHeader(
     horizontalArrangement = Arrangement.SpaceBetween,
     verticalAlignment = Alignment.CenterVertically,
   ) {
+    Image(
+      painter = painterResource(R.drawable.devicecare_universe_emblem),
+      contentDescription = null,
+      modifier = Modifier.size(46.dp).padding(end = 8.dp),
+    )
     Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
       Surface(
         shape = MaterialTheme.shapes.small,
@@ -280,7 +285,7 @@ private fun InspectionHeader(
           Text(
             text =
               if (enterprisePreview) "AI-DeviceCare+ · Business Prototyp"
-              else "AI-DeviceCare · M1 Vorschau",
+              else "DeviceCare KI · lokaler Prüfmodus",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
           )
@@ -288,7 +293,7 @@ private fun InspectionHeader(
       }
 
       Text(
-        text = if (enterprisePreview) "AI-DeviceCare+" else "AI-DeviceCare",
+        text = if (enterprisePreview) "DeviceCare KI+" else "DeviceCare KI",
         style = MaterialTheme.typography.headlineLarge,
         color = MaterialTheme.colorScheme.onBackground,
         modifier = Modifier.semantics { heading() },
@@ -341,7 +346,7 @@ private fun HeroInspectionCard(
       modifier = Modifier.fillMaxWidth().heightIn(min = if (compact) 232.dp else 264.dp)
     ) {
       Image(
-        painter = painterResource(id = R.drawable.img_hero_atelier),
+        painter = painterResource(id = R.drawable.devicecare_universe_hero),
         contentDescription = stringResource(R.string.hero_title),
         modifier = Modifier.matchParentSize(),
         contentScale = ContentScale.Crop,

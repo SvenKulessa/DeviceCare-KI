@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+  <!-- 108dp adaptive icon canvas; main symbol inside central safe zone. -->
+  <path android:fillColor="#0B1435" android:pathData="M20,16h68v77h-68z" android:fillAlpha="0"/>
+  <path android:fillColor="#10244A" android:strokeColor="#F5C24B"
+      android:strokeWidth="3.8" android:strokeLineJoin="round"
+      android:pathData="M54,17 L77,28 L75,65 Q72,82 54,90 Q36,82 33,65 L31,28 Z"/>
+  <path android:fillColor="#0B1435" android:strokeColor="#00E6FF"
+      android:strokeWidth="1.5"
+      android:pathData="M54,23 L70,31 L69,64 Q66,76 54,83 Q42,76 39,64 L38,31 Z"/>
+  <path android:fillColor="#0B1435" android:strokeColor="#B8C3D3"
+      android:strokeWidth="2.8"
+      android:pathData="M46,34 L62,34 Q65,34 65,38 L65,72 Q65,75 62,75 L46,75 Q43,75 43,72 L43,38 Q43,34 46,34 Z"/>
+  <path android:fillColor="#00E6FF" android:pathData="M50,38h8v1.5h-8z"/>
+  <path android:fillColor="#00E6FF" android:strokeColor="#00E6FF"
+      android:strokeWidth="1.7" android:pathData="M50,48h8v8h-8z"/>
+  <path android:fillColor="#00000000" android:strokeColor="#00E6FF"
+      android:strokeWidth="1.7" android:strokeLineCap="round"
+      android:pathData="M54,43v5 M54,56v5 M45,52h5 M58,52h5 M47,45l3,3 M58,56l4,4 M47,59l3,-3 M58,48l4,-4"/>
+  <path android:fillColor="#00000000" android:strokeColor="#00E6FF"
+      android:strokeWidth="3.8" android:strokeLineCap="round"
+      android:pathData="M16,70 C34,88 78,75 95,45"/>
+  <path android:fillColor="#00000000" android:strokeColor="#F5C24B"
+      android:strokeWidth="3.1" android:strokeLineCap="round"
+      android:pathData="M12,61 C29,80 73,74 92,43"/>
+  <path android:fillColor="#FFFFFF"
+      android:pathData="M89,37 L91,43 L97,45 L91,47 L89,53 L87,47 L81,45 L87,43 Z"/>
+</vector>

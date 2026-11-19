@@ -121,14 +121,14 @@ fun DesignSystemScreen(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
           ) {
             Image(
-              painter = painterResource(id = R.drawable.img_designer_avatar),
-              contentDescription = "Workspace Avatar",
+              painter = painterResource(id = R.drawable.devicecare_universe_emblem),
+              contentDescription = null,
               modifier = Modifier.size(68.dp).clip(CircleShape),
               contentScale = ContentScale.Crop,
             )
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
               Text(
-                text = "AI-DeviceCare Designsystem",
+                text = "DeviceCare KI · Universe Designsystem",
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface,
               )
@@ -156,7 +156,7 @@ fun DesignSystemScreen(
         verticalArrangement = Arrangement.spacedBy(10.dp),
       ) {
         Text(
-          text = "1. Farbpalette wählen",
+          text = "1. Farbpalette · Universe ist der freigegebene Standard",
           style = MaterialTheme.typography.titleMedium,
           color = MaterialTheme.colorScheme.onBackground,
           modifier = Modifier.padding(horizontal = 16.dp),

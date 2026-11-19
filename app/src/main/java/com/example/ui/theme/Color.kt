@@ -9,7 +9,8 @@ enum class ThemePalette(
   val displayName: String,
   val tagline: String,
 ) {
-  TERRAKOTTA("Terrakotta Studio", "Warmes Ziegelrot & Sand"),
+  UNIVERSE("DeviceCare KI · Universe", "Freigegeben · Space Navy, Plasma Cyan, Starlight Gold"),
+  TERRAKOTTA("Terrakotta Studio", "Legacy · Warmes Ziegelrot & Sand"),
   KOBALT("Kobalt Editorial", "Präzises Blau & Alabaster"),
   SALBEI("Salbei & Stein", "Ruhiges Grün & Kreide"),
   OBSIDIAN("Obsidian Gold", "Edles Gold & Graphit"),
@@ -251,8 +252,84 @@ private val ObsidianDark =
     outlineVariant = Color(0xFF443F35),
   )
 
+
+/** Approved DeviceCare KI Universe palette v1.0 — docs/brand/APPROVED-UNIVERSE-V1.md. */
+object UniverseBrand {
+  val Navy = Color(0xFF0B1435)
+  val Gold = Color(0xFFF5C24B)
+  val Cyan = Color(0xFF00E6FF)
+  val Red = Color(0xFFFF3B4D)
+  val Violet = Color(0xFF8A3DFF)
+  val Silver = Color(0xFFB8C3D3)
+  val White = Color(0xFFFFFFFF)
+}
+
+/** Semantic greens and amber are status indicators, not additions to the brand palette. */
+private val UniverseDark =
+  darkColorScheme(
+    primary = UniverseBrand.Cyan,
+    onPrimary = Color(0xFF00171F),
+    primaryContainer = Color(0xFF064B65),
+    onPrimaryContainer = Color(0xFFDAFAFF),
+    secondary = Color(0xFF70E9B8),
+    onSecondary = Color(0xFF092A20),
+    secondaryContainer = Color(0xFF174237),
+    onSecondaryContainer = Color(0xFFBBFFDD),
+    tertiary = UniverseBrand.Gold,
+    onTertiary = Color(0xFF352500),
+    tertiaryContainer = Color(0xFF503B12),
+    onTertiaryContainer = Color(0xFFFFE6A4),
+    error = UniverseBrand.Red,
+    onError = Color(0xFF3B0710),
+    background = Color(0xFF070D21),
+    onBackground = UniverseBrand.White,
+    surface = UniverseBrand.Navy,
+    onSurface = UniverseBrand.White,
+    surfaceVariant = Color(0xFF233357),
+    onSurfaceVariant = Color(0xFFD2DBEE),
+    surfaceContainerLowest = Color(0xFF05091B),
+    surfaceContainerLow = Color(0xFF0C1732),
+    surfaceContainer = Color(0xFF122245),
+    surfaceContainerHigh = Color(0xFF1B2D52),
+    surfaceContainerHighest = Color(0xFF26395D),
+    outline = Color(0xFF91A6CA),
+    outlineVariant = Color(0xFF3E5680),
+  )
+
+/** Accessible light surface variation for users choosing light mode explicitly. */
+private val UniverseLight =
+  lightColorScheme(
+    primary = Color(0xFF006A83),
+    onPrimary = UniverseBrand.White,
+    primaryContainer = Color(0xFFC5F4FF),
+    onPrimaryContainer = Color(0xFF003944),
+    secondary = Color(0xFF156C4C),
+    onSecondary = UniverseBrand.White,
+    secondaryContainer = Color(0xFFD4F4E0),
+    onSecondaryContainer = Color(0xFF0A3926),
+    tertiary = Color(0xFF825B00),
+    onTertiary = UniverseBrand.White,
+    tertiaryContainer = Color(0xFFFFE8AD),
+    onTertiaryContainer = Color(0xFF493000),
+    error = Color(0xFFB32638),
+    background = Color(0xFFF5F8FF),
+    onBackground = Color(0xFF101D38),
+    surface = UniverseBrand.White,
+    onSurface = Color(0xFF101D38),
+    surfaceVariant = Color(0xFFDDE7F5),
+    onSurfaceVariant = Color(0xFF34445E),
+    surfaceContainerLowest = UniverseBrand.White,
+    surfaceContainerLow = Color(0xFFF0F4FC),
+    surfaceContainer = Color(0xFFE8EFF9),
+    surfaceContainerHigh = Color(0xFFDCE7F5),
+    surfaceContainerHighest = Color(0xFFD1E0F2),
+    outline = Color(0xFF60728F),
+    outlineVariant = Color(0xFFB9CAE1),
+  )
+
 fun ThemePalette.colorScheme(darkTheme: Boolean): ColorScheme =
   when (this) {
+    ThemePalette.UNIVERSE -> if (darkTheme) UniverseDark else UniverseLight
     ThemePalette.TERRAKOTTA -> if (darkTheme) TerrakottaDark else TerrakottaLight
     ThemePalette.KOBALT -> if (darkTheme) KobaltDark else KobaltLight
     ThemePalette.SALBEI -> if (darkTheme) SalbeiDark else SalbeiLight
@@ -261,6 +338,7 @@ fun ThemePalette.colorScheme(darkTheme: Boolean): ColorScheme =
 
 fun ThemePalette.previewSwatches(): List<Color> =
   when (this) {
+    ThemePalette.UNIVERSE -> listOf(UniverseBrand.Navy, UniverseBrand.Cyan, UniverseBrand.Gold)
     ThemePalette.TERRAKOTTA -> listOf(Color(0xFFC4512C), Color(0xFF476657), Color(0xFFF0E4DC))
     ThemePalette.KOBALT -> listOf(Color(0xFF1E4ED8), Color(0xFFB5600B), Color(0xFFDCE2FF))
     ThemePalette.SALBEI -> listOf(Color(0xFF286655), Color(0xFFB85440), Color(0xFFD6E8E0))
