@@ -42,9 +42,17 @@
    at sign-in rather than preventing an isolated Android compilation.
 3. For a **release-signed** APK/AAB use the existing owner-controlled keystore
    only; verify alias, package, certificate continuity and secrets outside git.
-4. Verify Android 15 Z2459 TalkBack, large font, Play System update and battery
+4. Verify Android 15 Z2459 with a manually enabled screen reader (product/version recorded), large font, Play System update and battery
    overhead on actual hardware; emulator is not OTA or Play Protect evidence.
 
 ## Rollback
 Revert the migration PR commit(s). No database schema, live credentials,
 Play settings or customer records are migrated.
+
+## Accessibility evidence (screen reader, not product-specific)
+- Acceptance protocol: [Screenreader QA-04](SCREENREADER-QA.md). Android Compose
+  semantic/UI tests are independent of a *real-device screen-reader* acceptance.
+- The owner's screen recording is not automatically proof of spoken output,
+  correct focus navigation or announcements. Do not mark QA-04 VERIFIED until
+  the required device, screen reader, build and redacted evidence is inspected.
+- No AccessibilityService, ADB, root or background control is authorized.
