@@ -640,6 +640,13 @@ private fun InspectionResultSection(
       rows = result.permissionObservations,
     )
 
+    // Inventory uses the explicit inspection timestamp as its only trigger.
+    // Sensor sampling requires a second, separate per-sensor user action.
+    HardwareInspectionSection(
+      inspectionTimestamp = result.collectedAtMillis,
+      isStale = isStale,
+    )
+
     // System-guided Android Settings
     Card(
       shape = MaterialTheme.shapes.large,
