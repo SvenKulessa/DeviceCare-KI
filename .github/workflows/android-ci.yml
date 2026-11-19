@@ -44,13 +44,13 @@ jobs:
         with:
           gradle-version: '9.9.1'
 
-      - name: Install exact Android 36.1 SDK platform
+      - name: Install Android 37.2 compile SDK, retaining targetSdk 36
         shell: bash
         run: |
           set -euo pipefail
           SDK_MANAGER="${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager"
           test -x "$SDK_MANAGER"
-          "$SDK_MANAGER" --install "platforms;android-36.1" "build-tools;36.0.0"
+          "$SDK_MANAGER" --install "platforms;android-37.2" "build-tools;36.0.0"
           gradle --version
 
       - name: Prepare internal debug signing key (never a release key)
