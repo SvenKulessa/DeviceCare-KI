@@ -826,7 +826,7 @@ private fun DeviceProfileSummaryCard(
 }
 
 @Composable
-private fun ObservationGroupCard(
+internal fun ObservationGroupCard(
   title: String,
   rows: List<ObservationDisplayRow>,
 ) {
