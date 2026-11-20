@@ -8,6 +8,10 @@ plugins {
   alias(libs.plugins.google.services)
 }
 
+val playIntegrityEnabled = providers.gradleProperty("devicecare.playIntegrity")
+  .map { it.toBooleanStrict() }
+  .orElse(false)
+
 android {
   namespace = "com.example"
   compileSdk { version = release(37) { minorApiLevel = 2 } }
@@ -20,6 +24,7 @@ android {
     versionName = "1.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    buildConfigField("boolean", "USE_PLAY_INTEGRITY", "false")
   }
 
   // Do not remove or modify these signingConfigs. They are necessary for building, installing,
@@ -42,6 +47,7 @@ android {
 
   buildTypes {
     release {
+      buildConfigField("boolean", "USE_PLAY_INTEGRITY", playIntegrityEnabled.get().toString())
       isCrunchPngs = false
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -114,6 +120,7 @@ dependencies {
   implementation(libs.androidx.credentials.play.services)
   implementation(libs.googleid)
   implementation(libs.firebase.appcheck.recaptcha)
+  implementation(libs.firebase.appcheck.playintegrity)
   implementation(libs.firebase.appcheck.debug)
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.coroutines.core)
