@@ -754,6 +754,38 @@ private fun BudgetHighlightCard(result: InspectionResult, modifier: Modifier = M
   }
 }
 
+/**
+ * Keep label and measured value on separate full-width lines. In particular, long
+ * German OS limitations must never squeeze labels into one-character columns.
+ * Merged semantics makes each field readable as a label/value pair by screenreaders.
+ */
+@Composable
+internal fun InspectionLabelValueRow(
+  label: String,
+  value: String,
+  testId: String,
+  modifier: Modifier = Modifier,
+) {
+  Column(
+    modifier = modifier.fillMaxWidth().testTag(testId).semantics(mergeDescendants = true) {},
+    verticalArrangement = Arrangement.spacedBy(3.dp),
+  ) {
+    Text(
+      text = label,
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      modifier = Modifier.fillMaxWidth().testTag("${testId}_label"),
+    )
+    Text(
+      text = value,
+      style = MonoTokenTextStyle,
+      color = MaterialTheme.colorScheme.onSurface,
+      modifier = Modifier.fillMaxWidth().testTag("${testId}_value"),
+      softWrap = true,
+    )
+  }
+}
+
 @Composable
 private fun DeviceProfileSummaryCard(
   result: InspectionResult,
@@ -782,23 +814,12 @@ private fun DeviceProfileSummaryCard(
         color = MaterialTheme.colorScheme.primary,
       )
       HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
-      result.profileMetrics.forEach { (key, value) ->
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-          Text(
-            text = key,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(1f),
-          )
-          Text(
-            text = value,
-            style = MonoTokenTextStyle,
-            color = MaterialTheme.colorScheme.onSurface,
-          )
-        }
+      result.profileMetrics.forEachIndexed { index, (key, value) ->
+        InspectionLabelValueRow(
+          label = key,
+          value = value,
+          testId = "inspection_profile_$index",
+        )
       }
       HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
       Text(
@@ -812,7 +833,7 @@ private fun DeviceProfileSummaryCard(
 }
 
 @Composable
-private fun ObservationGroupCard(
+internal fun ObservationGroupCard(
   title: String,
   rows: List<ObservationDisplayRow>,
 ) {
@@ -833,24 +854,27 @@ private fun ObservationGroupCard(
         modifier = Modifier.semantics { heading() },
       )
       rows.forEach { row ->
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically,
+        Column(
+          modifier =
+            Modifier.fillMaxWidth()
+              .testTag("inspection_observation_${row.id}")
+              .semantics(mergeDescendants = true) {},
+          verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-          Column(modifier = Modifier.weight(1f)) {
-            Text(
-              text = row.label,
-              style = MaterialTheme.typography.bodyMedium,
-              color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-              text = "${row.id} · ${row.limitationCode}",
-              style = MonoTokenTextStyle,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-          }
+          Text(
+            text = row.label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.fillMaxWidth().testTag("inspection_observation_${row.id}_label"),
+          )
+          Text(
+            text = "${row.id} · ${row.limitationCode}",
+            style = MonoTokenTextStyle,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.fillMaxWidth(),
+          )
           Surface(
+            modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.small,
             color =
               if (row.status == ObservationStatus.OBSERVED)
@@ -864,7 +888,11 @@ private fun ObservationGroupCard(
                 if (row.status == ObservationStatus.OBSERVED)
                   MaterialTheme.colorScheme.onSecondaryContainer
                 else MaterialTheme.colorScheme.onTertiaryContainer,
-              modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+              modifier =
+                Modifier.fillMaxWidth()
+                  .padding(horizontal = 8.dp, vertical = 6.dp)
+                  .testTag("inspection_observation_${row.id}_value"),
+              softWrap = true,
             )
           }
         }
