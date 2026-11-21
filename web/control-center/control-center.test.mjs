@@ -83,6 +83,7 @@ async function run(path,{identityValue=identity(),members=[member(Roles.DEVICE_U
   const handler=createControlCenterHandler({
     ...(auth ? {authenticate:async()=>identityValue, membershipsFor:async()=>({memberships:members,activeTenantId})}:{ }),
     dashboardRead:async()=>data,
+    clock:()=>now,
   });
   await handler({method,url:path,headers:{"x-role":"OWNER","x-tenant-id":"company-2"}},response);
   return response;
@@ -140,4 +141,9 @@ test("tenant admin cannot grant own admin, project owner, cross-tenant or servic
     {scope:"tenant",tenantId:"company-1"}).allowed,true);
   assert.equal(a(Roles.FLEET_OPERATOR,"tenant","tenant:iam:manage",
     {scope:"tenant",tenantId:"company-1"}).allowed,false);
+});
+
+test("unknown/prototype route is not an authorized dashboard",async()=>{
+  assert.equal((await run("/__proto__")).statusCode,404);
+  assert.equal((await run("/profile/control-center/garbage")).statusCode,404);
 });
