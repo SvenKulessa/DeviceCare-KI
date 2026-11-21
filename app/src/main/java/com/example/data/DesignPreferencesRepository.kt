@@ -25,8 +25,8 @@ private val Context.designDataStore: DataStore<Preferences> by
  * NIEMALS Geräte-, Akku- oder Paket-Beobachtungen persistieren (M1-Datenschutzregel).
  */
 data class DesignPreferences(
-  val palette: ThemePalette = ThemePalette.TERRAKOTTA,
-  val themeMode: ThemeMode = ThemeMode.SYSTEM,
+  val palette: ThemePalette = ThemePalette.UNIVERSE,
+  val themeMode: ThemeMode = ThemeMode.DARK,
   val cornerStyle: CornerStyle = CornerStyle.BALANCED,
   val compactDensity: Boolean = false,
   val hapticPreview: Boolean = true,
@@ -57,10 +57,10 @@ class DesignPreferencesRepository(private val context: Context) {
       .map { prefs ->
       val palette =
         prefs[Keys.PALETTE]?.let { runCatching { ThemePalette.valueOf(it) }.getOrNull() }
-          ?: ThemePalette.TERRAKOTTA
+          ?: ThemePalette.UNIVERSE
       val themeMode =
         prefs[Keys.THEME_MODE]?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
-          ?: ThemeMode.SYSTEM
+          ?: ThemeMode.DARK
       val cornerStyle =
         prefs[Keys.CORNER_STYLE]?.let { runCatching { CornerStyle.valueOf(it) }.getOrNull() }
           ?: CornerStyle.BALANCED
@@ -116,8 +116,8 @@ class DesignPreferencesRepository(private val context: Context) {
 
   suspend fun resetDefaults() {
     context.designDataStore.edit { prefs ->
-      prefs[Keys.PALETTE] = ThemePalette.TERRAKOTTA.name
-      prefs[Keys.THEME_MODE] = ThemeMode.SYSTEM.name
+      prefs[Keys.PALETTE] = ThemePalette.UNIVERSE.name
+      prefs[Keys.THEME_MODE] = ThemeMode.DARK.name
       prefs[Keys.CORNER_STYLE] = CornerStyle.BALANCED.name
       prefs[Keys.COMPACT_DENSITY] = false
       prefs[Keys.HAPTIC_PREVIEW] = true

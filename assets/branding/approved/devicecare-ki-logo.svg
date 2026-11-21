@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 330" role="img" aria-label="DeviceCare KI · freigegebenes Universe Logo">
+<defs>
+ <linearGradient id="g" x2="1" y2="1"><stop stop-color="#F5C24B"/><stop offset=".52" stop-color="#FFFFFF"/><stop offset="1" stop-color="#00E6FF"/></linearGradient>
+ <linearGradient id="orbit"><stop stop-color="#00E6FF"/><stop offset="1" stop-color="#F5C24B"/></linearGradient>
+ <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ </defs>
+ <g transform="translate(32,6)" stroke-linejoin="round">
+ <path d="M140 25 256 74 244 214 Q224 265 140 306 Q56 265 36 214 L24 74 Z" fill="#0B1435" stroke="url(#g)" stroke-width="13"/>
+ <path d="M140 49 229 89 220 206 Q206 243 140 279 Q74 243 60 206 L51 89 Z" fill="#0B1435" stroke="#00E6FF" stroke-width="3"/>
+ <rect x="96" y="91" width="90" height="158" rx="13" stroke="#B8C3D3" stroke-width="7" fill="#081229"/>
+ <rect x="124" y="146" width="34" height="34" rx="5" fill="#00E6FF"/><text x="141" y="170" fill="#0B1435" font-family="Arial,sans-serif" font-size="19" font-weight="800" text-anchor="middle">AI</text>
+ <g stroke="#00E6FF" stroke-width="4" stroke-linecap="round"><path d="M141 135v11m0 34v12M110 163h14m34 0h14M118 140l8 8m31 31 9 9m-48 0 8-9m31-31 9-9"/></g>
+ <path d="M6 230 Q125 323 280 141" fill="none" stroke="url(#orbit)" stroke-width="10" stroke-linecap="round" filter="url(#glow)"/>
+ <path d="M283 117 289 139 309 147 289 154 283 174 277 154 258 147 277 139Z" fill="#F5C24B" filter="url(#glow)"/>
+ </g>
+ <text x="349" y="178" font-family="Arial,Helvetica,sans-serif" font-size="89" font-style="italic" font-weight="800" letter-spacing="-3" fill="#B8C3D3">DeviceCare</text>
+ <text x="920" y="178" font-family="Arial,Helvetica,sans-serif" font-size="93" font-style="italic" font-weight="900" fill="#F5C24B">KI</text>
+ <path d="M354 199H1003" stroke="#00E6FF" stroke-width="4"/>
+ <text x="354" y="241" fill="#FFFFFF" font-family="Arial,sans-serif" font-size="27" letter-spacing="1">Geräteschutz mit intelligenter Evidenz</text>
+</svg>

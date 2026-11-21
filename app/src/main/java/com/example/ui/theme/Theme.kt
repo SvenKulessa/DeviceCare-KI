@@ -53,8 +53,8 @@ fun CornerStyle.toShapes(): Shapes =
 
 @Composable
 fun FormwerkTheme(
-  palette: ThemePalette = ThemePalette.TERRAKOTTA,
-  themeMode: ThemeMode = ThemeMode.SYSTEM,
+  palette: ThemePalette = ThemePalette.UNIVERSE,
+  themeMode: ThemeMode = ThemeMode.DARK,
   cornerStyle: CornerStyle = CornerStyle.BALANCED,
   content: @Composable () -> Unit,
 ) {

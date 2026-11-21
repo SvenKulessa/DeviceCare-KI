@@ -52,3 +52,15 @@ Adopt the execution pattern of [CAPITAL-AI Root AGENTS.md](https://github.com/Sv
 - **Backlog hygiene:** reconcile issues to code/PRs on each scoped run; deduplicate and link cause to fix. Close confirmed finished/superseded issues only after code and checks prove resolution. Keep release and deployment approval boundaries intact.
 
 This addendum does not change branch protection, required checks, action permissions or production/release gates.
+
+## Approved UI branding — DeviceCare KI Universe v1.0 (owner, 2026-11-19)
+
+Use `docs/brand/APPROVED-UNIVERSE-V1.md` and `assets/branding/approved/` as the
+visual source of truth for all new screens and maintenance of existing surfaces.
+The official brand uses an original shield/device/chip/orbit motif, seven named
+colors and accessible Material3 semantics. Existing explicit user-selected legacy
+palettes remain supported for backwards compatibility; never use those as a
+new feature's visual default. No copyrighted film assets. Never present mocked
+scores, Play Protect state, device health or marketing imagery as live evidence.
+Preserve existing privacy and production-signing gates.
+
