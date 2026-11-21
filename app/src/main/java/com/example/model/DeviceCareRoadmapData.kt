@@ -322,6 +322,31 @@ object DeviceCareRoadmapData {
         canMarkVerifiedLocally = false,
       ),
 
+      RoadmapTask(
+        id = "rem-p1-control-center",
+        code = "P1-CENTER",
+        title = "Privates DeviceCare Control Center & Enterprise-IAM",
+        subtitle = "Rollenbasierte Profil-, Drive-, B2B- und Enterprise-Reiter",
+        category = PlanCategory.REMEDIATION,
+        status = GovernanceStatus.NOT_PROVEN,
+        owner = "PLATFORM / PRODUCT / TRUST",
+        blockingRelease = false,
+        sourceDoc = "web/control-center/README.md · GitHub Issue #23",
+        description =
+          "Serverseitiges, mandantenisoliertes DeviceCare-KI Control Center fuer eigene Geraete, Drive-Hygiene, SOLO2-Entscheidungen und spaetere Enterprise-Fleet-Ansichten. Ein sicherer SSR/RBAC-Referenzcode existiert; reale IAM-Provider, backendseitige Laufzeit, persistente Datenbank und Cloud-Deployment bleiben NOT_PROVEN.",
+        acceptanceCriteria =
+          listOf(
+            "Authentifizierte private Profil-Ansicht; keine fremden Geraete oder persoenliche Dateien",
+            "Eigenstaendiger Drive-Reiter mit PLAN_ONLY, WAIT_OWNER, STOP, Sicherheitsaudits und Genehmigungsstatus",
+            "B2B/Enterprise-Dashboards nur innerhalb autorisierter Mandanten mit serverseitig durchgesetzten Rollen",
+            "Tenant-Trennung, MFA-Step-up, Plan-Hash, unveraenderliches Audit und negative Zugriffs-Tests",
+            "Barrierefreie Mobile-/Tablet-/Desktop-UI, gepruefte Web-Deploy-Identitaet und Rollback",
+          ),
+        nonNegotiableBoundary =
+          "UI-Reiter ersetzen keine serverseitige IAM-Pruefung; kein Live-Web-Backend, keine Drive-Aktion und keine fremden Projektressourcen ohne gesonderte Freigaben.",
+        canMarkVerifiedLocally = false,
+      ),
+
       // --- 8 Physische Android 15 QA Tests (M1-ANDROID15-QA.md) ---
       RoadmapTask(
         id = "qa-1-no-auto",
