@@ -44,6 +44,7 @@ class InspectionTouchScrollTest {
           onOpenAiAdvisor = {},
           onOpenCloudSync = {},
           onOpenSystemSecurity = {},
+          onOpenPrivacySummary = {},
           onOpenAppPermissions = {},
           onOpenRoadmap = {},
           modifier = Modifier.fillMaxSize(),
