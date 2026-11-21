@@ -83,6 +83,13 @@ googleServices { missingGoogleServicesStrategy = MissingGoogleServicesStrategy.W
 // Some unused dependencies are commented out below instead of being removed.
 // This makes it easy to add them back in the future if needed.
 dependencies {
+  // Do not add Guava directly to the app. Only constrain the existing transitive runtime use.
+  // CI verifies the final resolved graph and blocks on CVE-2026-102554.
+  constraints {
+    implementation("com.google.guava:guava:33.7.2-android") {
+      because("CVE-2026-102554: exclude vulnerable transitive Guava from Android runtime")
+    }
+  }
   implementation(platform(libs.androidx.compose.bom))
   implementation(platform(libs.firebase.bom))
   // implementation(libs.accompanist.permissions)
