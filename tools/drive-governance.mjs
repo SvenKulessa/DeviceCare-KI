@@ -38,10 +38,10 @@ export function dayKey(now = new Date()) {
 // Calling this function does NOT schedule a job or claim a durable lock.
 export function dailyAdmission({ enabled, project, rootVerified, oauthVerified, scannerReady,
   webBackendReady, ownerPaused, completedDayKey, now = new Date() } = {}) {
+  if (ownerPaused) return result(Status.STOPPED, "OWNER_STOP");
   if (project !== PROJECT || !rootVerified) return result(Status.HOLD, "SCOPE_NOT_VERIFIED");
   if (!enabled || !webBackendReady || !oauthVerified || !scannerReady)
     return result(Status.HOLD, "ADAPTER_NOT_READY");
-  if (ownerPaused) return result(Status.STOPPED, "OWNER_STOP");
   if (completedDayKey === dayKey(now)) return result(Status.STOPPED, "DAY_ALREADY_COMPLETED");
   return result(Status.PLAN_ONLY, "ADMITTED_TO_DRY_RUN");
 }
@@ -62,9 +62,12 @@ function validName(classification, mime) {
     !c.contentReceipt || !(c.confidence >= 0.95) ||
     !/^\d{4}-\d{2}-\d{2}$/.test(c.contentDate || "") ||
     !/^([A-Z0-9]+_?){1,12}$/.test(c.topic || "") ||
+    c.topic.length > 64 ||
     !Number.isSafeInteger(c.version) || c.version < 1 || c.version > 999)
     return null;
-  if (!Number.isFinite(Date.parse(c.contentDate + "T00:00:00Z"))) return null;
+  const iso = new Date(c.contentDate + "T00:00:00Z");
+  if (!Number.isFinite(iso.valueOf()) || iso.toISOString().slice(0, 10) !== c.contentDate)
+    return null;
   const extension = NATIVE_MIME.has(mime) ? "" : FILE_EXTENSIONS[mime];
   if (extension === undefined) return null;
   return `${c.contentDate}_DEVICECARE_CHATGPT_${c.topic}_v${c.version}${extension ? "." + extension : ""}`;
