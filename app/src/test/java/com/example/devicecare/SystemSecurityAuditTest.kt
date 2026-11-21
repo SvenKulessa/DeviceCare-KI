@@ -55,6 +55,18 @@ class SystemSecurityAuditTest {
         assertFalse(lines.any { it.contains("Beta: VERIFIED") })
     }
 
+    @Test fun unverifiedSyntheticSnapshotCannotClaimLocalDeviceReadback() {
+        val sample = snapshot("2026-11-05").copy(
+            origin = SystemSnapshotOrigin.NOT_PROVEN,
+            playServicesVersion = "26.44.12",
+        )
+        val lines = presentSystemSecurity(sample)
+        assertTrue(lines.any { it.contains("Herkunft: NOT_PROVEN") })
+        assertTrue(lines.any { it.contains("Sicherheitspatch: NOT_PROVEN") })
+        assertTrue(lines.any { it.contains("Google Play-Dienste: NOT_PROVEN") })
+        assertFalse(lines.any { it.contains("[VERIFIED") })
+    }
+
     private fun snapshot(patch: String?) = SystemSecuritySnapshot(
         collectedAtMillis = today,
         androidRelease = "15",
@@ -64,5 +76,7 @@ class SystemSecurityAuditTest {
         playStoreVersion = null,
         webViewVersion = null,
         webViewProvider = null,
+        // Synthetic rendering fixture only. This flag is not physical-device evidence.
+        origin = SystemSnapshotOrigin.LOCAL_SYSTEM_API,
     )
 }
