@@ -8,6 +8,18 @@ import org.junit.Test
 
 class HardwareInventoryPolicyTest {
   @Test
+  fun hardwareFeatureInventoryBudgetIncludesKnownEntries() {
+    // Before this regression fix 12 known + 128 other features could expose 140 rows.
+    assertEquals(128, HardwareInventoryLimits.MAX_ENTRIES)
+    assertEquals(128, HardwareInventoryLimits.additionalFeatureSlots(0))
+    assertEquals(116, HardwareInventoryLimits.additionalFeatureSlots(12))
+    assertEquals(0, HardwareInventoryLimits.additionalFeatureSlots(128))
+    assertEquals(0, HardwareInventoryLimits.additionalFeatureSlots(140))
+    assertEquals(0, HardwareInventoryLimits.additionalFeatureSlots(-1) - 128)
+    assertTrue(12 + HardwareInventoryLimits.additionalFeatureSlots(12) <= 128)
+  }
+
+  @Test
   fun passiveSensorsAreExplicitlyWhitelisted() {
     assertTrue(HardwareTestPolicy.canSample(Sensor.TYPE_ACCELEROMETER))
     assertTrue(HardwareTestPolicy.canSample(Sensor.TYPE_LIGHT))
