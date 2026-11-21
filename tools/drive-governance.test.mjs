@@ -110,3 +110,13 @@ test("batch stops at first evidence gap and preserves checkpoint", () => {
   assert.equal(out.plans.length,2);
   assert.equal(planBatch(Array(501).fill(x)).code,"BATCH_LIMIT");
 });
+
+test("owner stop overrides missing cloud integrations", () => {
+  assert.equal(dailyAdmission({ownerPaused:true}).code,"OWNER_STOP");
+});
+test("impossible content dates and excessive topic strings require owner review", () => {
+  const x=good(); x.classification.contentDate="2026-02-31";
+  assert.equal(evaluateFile(x).state,Status.WAIT);
+  const y=good(); y.classification.topic="A".repeat(10000);
+  assert.equal(evaluateFile(y).state,Status.WAIT);
+});
