@@ -103,6 +103,8 @@ export function evaluateFile({ file, scope, classification, scan, activity, arch
     !scope.projectRootId || !Array.isArray(scope.destinationFolderIds) ||
     !scope.destinationFolderIds.length)
     return result(Status.HOLD, "PROJECT_BOUNDARY_NOT_VERIFIED");
+  if (!file.parentId || typeof file.parentId !== "string")
+    return result(Status.HOLD, "SOURCE_PARENT_NOT_VERIFIED");
   if (file.ownerDecisionRequired || file.conflict || file.locked ||
       file.legalHold || file.shortcut || file.isSharedExternally)
     return result(Status.WAIT, "OWNER_DECISION_REQUIRED");
