@@ -53,6 +53,52 @@ jobs:
           "$SDK_MANAGER" --install "platforms;android-37.2" "build-tools;36.0.0"
           gradle --version
 
+      # Trivy's earlier filesystem scan does not resolve Gradle artifacts.
+      # Produce a CI-only lockfile from the resolved runtime graph; do not mutate project lock policy.
+      - name: Materialize Gradle runtime dependencies for vulnerability coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/devicecare-locks.init.gradle" <<'GRADLE'
+          gradle.beforeProject { project ->
+            if (project.path == ':app') {
+              project.dependencyLocking { lockAllConfigurations() }
+            }
+          }
+          GRADLE
+          gradle --no-daemon --init-script "$RUNNER_TEMP/devicecare-locks.init.gradle" \
+            :app:dependencies --configuration debugRuntimeClasspath --write-locks > /dev/null
+          test -s app/gradle.lockfile
+          grep -Eq '^[^#[:space:]][^=]*:[^=]*:[^=]*=' app/gradle.lockfile || {
+            echo '::error::Gradle runtime lockfile has no resolved packages'
+            exit 1
+          }
+
+      - name: Trivy resolved Gradle vulnerability and license gate
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          version: v0.74.0
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,license
+          severity: HIGH,CRITICAL
+          format: json
+          output: devicecare-trivy-resolved.json
+          exit-code: '1'
+
+      - name: Reject empty Trivy Gradle package coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s devicecare-trivy-resolved.json
+          count="$(jq -r '[.Results[]? | select((.Target // "") | contains("gradle.lockfile")) | (.Packages // [])[]] | length' devicecare-trivy-resolved.json)"
+          if [ "${count:-0}" -lt 1 ]; then
+            echo '::error::Trivy did not report any resolved Gradle packages; vulnerability result is NOT_PROVEN'
+            exit 1
+          fi
+          printf 'TRIVY_RESOLVED_GRADLE_PACKAGES=%s\n' "$count"
+          rm -f devicecare-trivy-resolved.json
+
       - name: Prepare internal debug signing key (never a release key)
         shell: bash
         run: |
