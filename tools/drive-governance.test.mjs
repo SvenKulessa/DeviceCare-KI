@@ -120,3 +120,8 @@ test("impossible content dates and excessive topic strings require owner review"
   const y=good(); y.classification.topic="A".repeat(10000);
   assert.equal(evaluateFile(y).state,Status.WAIT);
 });
+
+test("missing source parent always fails closed", () => {
+  const x=good(); delete x.file.parentId;
+  assert.equal(evaluateFile(x).code,"SOURCE_PARENT_NOT_VERIFIED");
+});
