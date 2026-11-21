@@ -57,14 +57,14 @@ const baseHeaders = {
   "Referrer-Policy": "no-referrer",
   "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'",
 };
-export function createControlCenterHandler({ authenticate, membershipsFor, dashboardRead } = {}) {
+export function createControlCenterHandler({ authenticate, membershipsFor, dashboardRead, clock = () => new Date() } = {}) {
   // These adapters MUST be server-side and cannot rely on caller-supplied role headers.
   return async function handler(req, res) {
     for (const [k,v] of Object.entries(baseHeaders)) res.setHeader(k,v);
     const fail = (status, msg) => { res.statusCode=status; res.setHeader("Content-Type","text/plain; charset=utf-8");res.end(msg); };
     if (req.method !== "GET") return fail(405,"METHOD_NOT_ALLOWED");
     const path = req.url?.split("?")[0];
-    const route = paths[path];
+    const route = Object.hasOwn(paths, path) ? paths[path] : null;
     if (!route) return fail(404,"NOT_FOUND");
     if (typeof authenticate !== "function" || typeof membershipsFor !== "function")
       return fail(503,"IAM_NOT_CONFIGURED");
@@ -73,7 +73,7 @@ export function createControlCenterHandler({ authenticate, membershipsFor, dashb
       const context = await membershipsFor(identity); // server-side memberships, tenant ID from trusted session
       const memberships = context?.memberships;
       const tenantId = context?.activeTenantId;
-      const now = new Date();
+      const now = clock();
       const decision = authorizedMembership({ identity, memberships,
         operation:route.operation, tenantId, now });
       if (!decision.allowed) return fail(403,"FORBIDDEN");
