@@ -125,9 +125,14 @@ object PrivacySummaryAggregator {
   ): PrivacySummaryReport {
     val validAppsScan = appsScanResult?.takeIf { it.errorMessage == null }
     val validInspection = inspectionResult?.takeIf { it.errorMessage == null }
+    // Only the on-device collector may contribute to local security readiness.
+    // An imported or synthetic snapshot must remain NOT_PROVEN.
+    val validSecuritySnapshot = securitySnapshot?.takeIf {
+      it.origin == SystemSnapshotOrigin.LOCAL_SYSTEM_API && it.collectedAtMillis >= 0L
+    }
 
     val hasPermissionScan = validAppsScan != null
-    val hasSecurityCheck = securitySnapshot != null
+    val hasSecurityCheck = validSecuritySnapshot != null
     val hasInspectionRun = validInspection != null
 
     val completedCount =
@@ -182,8 +187,8 @@ object PrivacySummaryAggregator {
       )
 
     val patchSignal =
-      if (securitySnapshot != null) {
-        PatchAgePolicy.classify(securitySnapshot.securityPatch, securitySnapshot.collectedAtMillis)
+      if (validSecuritySnapshot != null) {
+        PatchAgePolicy.classify(validSecuritySnapshot.securityPatch, validSecuritySnapshot.collectedAtMillis)
       } else {
         PatchAgeSignal.NOT_PROVEN
       }
@@ -197,7 +202,7 @@ object PrivacySummaryAggregator {
         multiCriticalApps = multiCriticalApps,
         phoneSmsCount = phoneSmsCount,
         contactsCount = contactsCount,
-        securitySnapshot = securitySnapshot,
+        validSecuritySnapshot = validSecuritySnapshot,
         patchSignal = patchSignal,
         hasInspectionRun = hasInspectionRun,
         aiReport = aiReport,
@@ -209,7 +214,7 @@ object PrivacySummaryAggregator {
         hasSecurityCheck = hasSecurityCheck,
         patchSignal = patchSignal,
         multiCriticalCount = multiCriticalApps.size,
-        securitySnapshot = securitySnapshot,
+        validSecuritySnapshot = validSecuritySnapshot,
       )
 
     return PrivacySummaryReport(
@@ -227,13 +232,13 @@ object PrivacySummaryAggregator {
       multiCriticalApps = multiCriticalApps,
       sensorMetrics = sensorMetrics,
       androidReleaseLabel =
-        securitySnapshot?.let { "Android ${it.androidRelease} (API ${it.apiLevel})" },
-      securityPatch = securitySnapshot?.securityPatch,
+        validSecuritySnapshot?.let { "Android ${it.androidRelease} (API ${it.apiLevel})" },
+      securityPatch = validSecuritySnapshot?.securityPatch,
       patchAgeSignal = patchSignal,
-      playServicesVersion = securitySnapshot?.playServicesVersion,
-      playStoreVersion = securitySnapshot?.playStoreVersion,
-      webViewVersion = securitySnapshot?.webViewVersion,
-      webViewProvider = securitySnapshot?.webViewProvider,
+      playServicesVersion = validSecuritySnapshot?.playServicesVersion,
+      playStoreVersion = validSecuritySnapshot?.playStoreVersion,
+      webViewVersion = validSecuritySnapshot?.webViewVersion,
+      webViewProvider = validSecuritySnapshot?.webViewProvider,
       aiPrivacyReport = aiReport,
       adviceItems = adviceItems,
     )
