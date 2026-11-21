@@ -100,7 +100,6 @@ jobs:
           jq -r '[.Results[]? | select((.Target // "") | contains("gradle.lockfile")) | (.Packages // [])[]] | "TRIVY_GRADLE_PACKAGE_COUNT=\(length)"' "$report"
           jq -r '[.Results[]? | (.Vulnerabilities // [])[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL")] | "TRIVY_HIGH_CRITICAL_FINDINGS=\(length)"' "$report"
           jq -c '[.Results[]? | (.Vulnerabilities // [])[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL") | {severity:.Severity,id:.VulnerabilityID,package:.PkgName,installed:.InstalledVersion,fixed:(.FixedVersion // "NOT_PROVEN")}] | .[:20][]' "$report"
-          rm -f "$report"
 
       - name: Reject empty Trivy Gradle package coverage
         shell: bash
@@ -113,7 +112,10 @@ jobs:
             exit 1
           fi
           printf 'TRIVY_RESOLVED_GRADLE_PACKAGES=%s\n' "$count"
-          rm -f devicecare-trivy-resolved.json
+      - name: Remove temporary Trivy report (also on failure)
+        if: always()
+        shell: bash
+        run: rm -f -- devicecare-trivy-resolved.json
 
       - name: Prepare internal debug signing key (never a release key)
         shell: bash
