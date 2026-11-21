@@ -202,7 +202,7 @@ object PrivacySummaryAggregator {
         multiCriticalApps = multiCriticalApps,
         phoneSmsCount = phoneSmsCount,
         contactsCount = contactsCount,
-        validSecuritySnapshot = validSecuritySnapshot,
+        securitySnapshot = validSecuritySnapshot,
         patchSignal = patchSignal,
         hasInspectionRun = hasInspectionRun,
         aiReport = aiReport,
@@ -214,7 +214,7 @@ object PrivacySummaryAggregator {
         hasSecurityCheck = hasSecurityCheck,
         patchSignal = patchSignal,
         multiCriticalCount = multiCriticalApps.size,
-        validSecuritySnapshot = validSecuritySnapshot,
+        securitySnapshot = validSecuritySnapshot,
       )
 
     return PrivacySummaryReport(
