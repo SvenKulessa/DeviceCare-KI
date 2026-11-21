@@ -4,11 +4,11 @@
 export const Roles = Object.freeze({
   OWNER: "OWNER", DEVICE_USER: "DEVICE_USER", B2B_ADMIN: "B2B_ADMIN",
   ENTERPRISE_ADMIN: "ENTERPRISE_ADMIN", SECURITY_ANALYST: "SECURITY_ANALYST",
-  AUDITOR: "AUDITOR", VIEWER: "VIEWER",
+  AUDITOR: "AUDITOR", VIEWER: "VIEWER", FLEET_OPERATOR: "FLEET_OPERATOR",
 });
 const grants = Object.freeze({
   "personal:view": [Roles.DEVICE_USER, Roles.OWNER, Roles.VIEWER],
-  "tenant:dashboard": [Roles.ENTERPRISE_ADMIN, Roles.B2B_ADMIN, Roles.SECURITY_ANALYST, Roles.AUDITOR, Roles.VIEWER],
+  "tenant:dashboard": [Roles.ENTERPRISE_ADMIN, Roles.B2B_ADMIN, Roles.SECURITY_ANALYST, Roles.AUDITOR, Roles.VIEWER, Roles.FLEET_OPERATOR],
   "tenant:iam:read": [Roles.ENTERPRISE_ADMIN, Roles.B2B_ADMIN, Roles.AUDITOR],
   "tenant:iam:manage": [Roles.ENTERPRISE_ADMIN, Roles.B2B_ADMIN],
   "project:drive:view": [Roles.OWNER, Roles.SECURITY_ANALYST, Roles.AUDITOR],
@@ -31,6 +31,7 @@ const ROLE_SCOPE = Object.freeze({
   [Roles.SECURITY_ANALYST]: ["tenant", "project"],
   [Roles.AUDITOR]: ["tenant", "project"],
   [Roles.VIEWER]: ["tenant", "personal"],
+  [Roles.FLEET_OPERATOR]: ["tenant"],
 });
 const deny = (reason) => ({ allowed: false, reason });
 const allow = () => ({ allowed: true, reason: "VERIFIED" });
@@ -115,4 +116,28 @@ export function validateOwnerPlanApproval({ identity, memberships, approval, pla
     return deny("APPROVAL_STALE_OR_INVALID");
   // This is a validation decision only, never a Drive or IAM mutation.
   return allow();
+}
+
+const TENANT_DELEGATABLE_ROLES = new Set([
+  Roles.VIEWER, Roles.FLEET_OPERATOR, Roles.AUDITOR, Roles.SECURITY_ANALYST,
+]);
+// A tenant administrator cannot promote themself or grant administrative,
+// project-owner, service-agent, or cross-tenant privileges.
+export function evaluateTenantRoleChange({ identity, membership, change,
+  now = new Date() } = {}) {
+  const scope = { scope:"tenant", tenantId:change?.tenantId };
+  const decision = authorize({ identity, membership,
+    operation:"tenant:iam:manage", resource:scope, now });
+  if (!decision.allowed) return decision;
+  if (!change || change.status!=="VERIFIED" || !change.serverVerified ||
+    !change.actorIntentVerified || !change.targetSubjectId ||
+    change.targetSubjectId===identity.subjectId ||
+    !TENANT_DELEGATABLE_ROLES.has(change.newRole) ||
+    change.expectedMembershipVersion===undefined ||
+    !change.targetMembershipVerified ||
+    change.lastAdminProtected!==true)
+    return deny("TENANT_ROLE_CHANGE_NOT_APPROVED");
+  // No mutation or IAM provider call. Actual write must independently recheck
+  // target membership, tenant version and step-up immediately before mutation.
+  return { allowed:true, reason:"PLAN_ONLY" };
 }
