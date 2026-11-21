@@ -88,7 +88,7 @@ object DeviceCareRoadmapData {
         blockingRelease = true,
         sourceDoc = "docs/M1-COLLECTORS.md · docs/M1-ANDROID15-QA.md",
         description =
-          "Erster Consumer-Vertikalschnitt: Liest auf expliziten Nutzerklick den Akkustand und OS-sichtbare Paket-Aggregate (`devicecare-observation/1`). Reale Android-15-Gerätetests, TalkBack-Abnahme und Play Billing stehen noch aus.",
+          "Erster Consumer-Vertikalschnitt: Liest auf expliziten Nutzerklick den Akkustand und OS-sichtbare Paket-Aggregate (`devicecare-observation/1`). Reale Android-15-Gerätetests, Screenreader-Abnahme und Play Billing stehen noch aus.",
         acceptanceCriteria =
           listOf(
             "Manueller Start auf Dispatchers.IO; kein Scan beim App-Öffnen",
@@ -242,14 +242,14 @@ object DeviceCareRoadmapData {
         id = "rem-p1-emu",
         code = "P1-2",
         title = "Android 15 (API 35) Emulator Compose & Accessibility QA",
-        subtitle = "Semantik-Tests, TalkBack-Überschriften & expliziter Scan-Button",
+        subtitle = "Semantik-Tests, Screenreader-Überschriften & expliziter Scan-Button",
         category = PlanCategory.REMEDIATION,
         status = GovernanceStatus.IN_PROGRESS,
         owner = "PRODUCT / MOBILE",
         blockingRelease = true,
         sourceDoc = "docs/M1-ANDROID15-QA.md · M1InspectionAccessibilityTest.kt",
         description =
-          "Übt auf API-35-Emulator das manuelle Starten der Prüfung, Überschriften-Semantik, 48dp-Touch-Ziele und Live-Regionen. Ersetzt keine manuelle TalkBack-Prüfung auf echter Hardware.",
+          "Übt auf API-35-Emulator das manuelle Starten der Prüfung, Überschriften-Semantik, 48dp-Touch-Ziele und Live-Regionen. Ersetzt keine manuelle Screenreader-Prüfung auf echter Hardware.",
         acceptanceCriteria =
           listOf(
             "Kein automatischer Scan beim Öffnen der App",
@@ -358,21 +358,22 @@ object DeviceCareRoadmapData {
       RoadmapTask(
         id = "qa-4-a11y",
         code = "QA-04",
-        title = "Android 15 TalkBack, 200% Schrift & 320dp Layout",
+        title = "Android 15 Screenreader, 200% Schrift & 320dp Layout",
         subtitle = "Vollständige manuelle Barrierefreiheits- und Umbruch-Prüfung",
         category = PlanCategory.ANDROID15_QA,
         status = GovernanceStatus.NOT_PROVEN,
         owner = "OWNER QA",
         blockingRelease = true,
-        sourceDoc = "docs/M1-ANDROID15-QA.md §4",
+        sourceDoc = "docs/SCREENREADER-QA.md §QA-04",
         description =
-          "Aktiviere TalkBack manuell und prüfe Überschriften-Navigation, Fokusreihenfolge, Live-Regionen, 200% Schrift-/Anzeigegröße, Querformat, Hell/Dunkel und 320dp Breite.",
+          "Aktiviere einen Android-Screenreader manuell (Name/Version dokumentieren) und prüfe Überschriften-Navigation, Fokusreihenfolge, verständliche Ansagen nach Scan-Ergebnissen, 200% Schrift-/Anzeigegröße, Querformat, Hell/Dunkel und 320dp Breite.",
         acceptanceCriteria =
           listOf(
             "Kein Text-Clipping bei 200% Schriftgröße",
-            "Saubere TalkBack-Ansage bei Scan-Ergebnis und Einstellungs-Fehlern",
+            "Verständliche Screenreader-Ansagen bei Scan-Ergebnis und Einstellungs-Fehlern",
           ),
-        nonNegotiableBoundary = "Ohne eigene AccessibilityService-Berechtigung testen.",
+        nonNegotiableBoundary = "Ohne eigene AccessibilityService-Berechtigung testen; Gerätedaten und Ansagen belegen, nicht bloß UI-Semantik.",
+        canMarkVerifiedLocally = false,
       ),
       RoadmapTask(
         id = "qa-5-process-death",
