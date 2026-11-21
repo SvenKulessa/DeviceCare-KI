@@ -32,6 +32,15 @@ class HardwareInventoryPolicyTest {
   }
 
   @Test
+  fun staleAndSupersededSamplesNeverBecomeCurrentEvidence() {
+    assertTrue(HardwareSamplePublicationPolicy.isCurrent(4, 4, 1000L, 1000L, false))
+    // An older callback must fail closed even if two scans share a millisecond timestamp.
+    assertFalse(HardwareSamplePublicationPolicy.isCurrent(4, 5, 1000L, 1000L, false))
+    assertFalse(HardwareSamplePublicationPolicy.isCurrent(4, 4, 1000L, 1001L, false))
+    assertFalse(HardwareSamplePublicationPolicy.isCurrent(4, 4, 1000L, 1000L, true))
+  }
+
+  @Test
   fun validEventIsObservedButNeverHardwareHealthVerified() {
     assertEquals(HardwareSampleStatus.OBSERVED, HardwareTestPolicy.status(true, floatArrayOf(0.0f, 9.81f, 0.0f)))
   }

@@ -14,6 +14,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -31,8 +33,11 @@ import androidx.compose.ui.unit.dp
 import com.example.devicecare.AndroidHardwareInventory
 import com.example.devicecare.AndroidHardwareSensorTester
 import com.example.devicecare.HardwareSample
+import com.example.devicecare.HardwareSamplePublicationPolicy
+import com.example.devicecare.HardwareSampleStatus
 import com.example.devicecare.HardwareSnapshot
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -48,8 +53,16 @@ fun HardwareInspectionSection(inspectionTimestamp: Long, isStale: Boolean) {
   var activeSensorKey by remember { mutableStateOf<String?>(null) }
   val sensorResults = remember { mutableStateMapOf<String, HardwareSample>() }
   val scope = rememberCoroutineScope()
+  var inspectionEpoch by remember { mutableIntStateOf(0) }
+  var activeSampleJob by remember { mutableStateOf<Job?>(null) }
+  val currentInspectionAt by rememberUpdatedState(inspectionTimestamp)
+  val currentIsStale by rememberUpdatedState(isStale)
 
   LaunchedEffect(inspectionTimestamp) {
+    // Invalidate and cancel an unfinished opt-in sample before clearing the display.
+    inspectionEpoch += 1
+    activeSampleJob?.cancel()
+    activeSampleJob = null
     snapshot = null
     inventoryError = null
     showAllSensors = false
@@ -134,13 +147,36 @@ fun HardwareInspectionSection(inspectionTimestamp: Long, isStale: Boolean) {
                 FilledTonalButton(
                   enabled = activeSensorKey == null && !isStale,
                   onClick = {
-                    if (activeSensorKey == null) {
+                    if (activeSensorKey == null && !isStale) {
+                      val requestEpoch = inspectionEpoch
+                      val requestedInspectionAt = inspectionTimestamp
                       activeSensorKey = key
-                      scope.launch {
+                      activeSampleJob = scope.launch {
+                        fun mayPublish() = HardwareSamplePublicationPolicy.isCurrent(
+                          requestedEpoch = requestEpoch,
+                          currentEpoch = inspectionEpoch,
+                          requestedInspectionAt = requestedInspectionAt,
+                          currentInspectionAt = currentInspectionAt,
+                          isStale = currentIsStale,
+                        )
                         try {
-                          sensorResults[key] = AndroidHardwareSensorTester.sample(context, sensor)
+                          val sample = AndroidHardwareSensorTester.sample(context, sensor)
+                          if (mayPublish()) sensorResults[key] = sample
+                        } catch (cancelled: CancellationException) {
+                          throw cancelled
+                        } catch (_: RuntimeException) {
+                          if (mayPublish()) {
+                            sensorResults[key] = HardwareSample(
+                              HardwareSampleStatus.NOT_PROVEN,
+                              "Sensormessung fehlgeschlagen; keine Werte erfunden.",
+                            )
+                          }
                         } finally {
-                          activeSensorKey = null
+                          // A superseded request must not clear a newer request's UI state.
+                          if (requestEpoch == inspectionEpoch) {
+                            activeSensorKey = null
+                            activeSampleJob = null
+                          }
                         }
                       }
                     }

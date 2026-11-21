@@ -10,6 +10,7 @@ import android.hardware.SensorManager
 import android.os.Build
 import android.os.StatFs
 import java.util.Locale
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -183,6 +184,20 @@ object AndroidHardwareInventory {
     else String.format(Locale.GERMANY, "%.2f GiB", bytes.toDouble() / (1024.0 * 1024.0 * 1024.0))
 }
 
+/** Prevent sensor observations from an earlier inspection being shown as current evidence. */
+object HardwareSamplePublicationPolicy {
+  fun isCurrent(
+    requestedEpoch: Int,
+    currentEpoch: Int,
+    requestedInspectionAt: Long,
+    currentInspectionAt: Long,
+    isStale: Boolean,
+  ): Boolean =
+    requestedEpoch == currentEpoch &&
+      requestedInspectionAt == currentInspectionAt &&
+      !isStale
+}
+
 object AndroidHardwareSensorTester {
   /** Call only from a visible, user-pressed sensor button; never from the scan itself. */
   suspend fun sample(context: Context, descriptor: HardwareSensor): HardwareSample =
@@ -222,6 +237,9 @@ object AndroidHardwareSensorTester {
         }
       } catch (_: SecurityException) {
         HardwareSample(HardwareSampleStatus.DENIED, "Android hat den Sensorzugriff verweigert.")
+      } catch (cancelled: CancellationException) {
+        // Parent cancellation must propagate; finally unregisters the listener.
+        throw cancelled
       } catch (_: RuntimeException) {
         HardwareSample(HardwareSampleStatus.NOT_PROVEN, "Messung nicht verfügbar.")
       } finally {
