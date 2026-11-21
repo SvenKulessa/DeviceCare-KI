@@ -86,6 +86,22 @@ jobs:
           output: devicecare-trivy-resolved.json
           exit-code: '1'
 
+      - name: Summarize resolved-package scan without disclosing raw findings
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          report=devicecare-trivy-resolved.json
+          if [ ! -s "$report" ]; then
+            echo 'TRIVY_RESOLVED_REPORT=NOT_PROVEN (missing or empty)'
+            exit 0
+          fi
+          jq -e '.Results | type == "array"' "$report" >/dev/null
+          jq -r '[.Results[]? | select((.Target // "") | contains("gradle.lockfile")) | (.Packages // [])[]] | "TRIVY_GRADLE_PACKAGE_COUNT=\(length)"' "$report"
+          jq -r '[.Results[]? | (.Vulnerabilities // [])[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL")] | "TRIVY_HIGH_CRITICAL_FINDINGS=\(length)"' "$report"
+          jq -c '[.Results[]? | (.Vulnerabilities // [])[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL") | {severity:.Severity,id:.VulnerabilityID,package:.PkgName,installed:.InstalledVersion,fixed:(.FixedVersion // "NOT_PROVEN")}] | .[:20][]' "$report"
+          rm -f "$report"
+
       - name: Reject empty Trivy Gradle package coverage
         shell: bash
         run: |
