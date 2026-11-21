@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performScrollToNode
 import com.example.devicecare.PrivacySummaryAggregator
 import com.example.devicecare.PrivacySummaryReport
 import com.example.devicecare.SystemSecuritySnapshot
+import com.example.devicecare.SystemSnapshotOrigin
 import com.example.features.battery.BatteryDashboardSnapshot
 import com.example.features.permissions.AppExportFormat
 import com.example.features.permissions.GrantedDangerousPermission
@@ -80,6 +81,8 @@ class PostureNextStepsTest {
       playStoreVersion = "54.0",
       webViewVersion = "158.0",
       webViewProvider = "com.google.android.webview",
+      // Synthetic fixture models local collector output, not real hardware acceptance.
+      origin = SystemSnapshotOrigin.LOCAL_SYSTEM_API,
     )
 
   private val sampleReport: PrivacySummaryReport =
