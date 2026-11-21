@@ -135,6 +135,18 @@ class RethinkAuditTests(unittest.TestCase):
             self.assertEqual(main([str(p), "--out", str(out)]), 2)
             self.assertEqual(target.read_text(), "important")
 
+    def test_symlinked_report_parent_is_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "sample.rbk"
+            backup(p)
+            private = Path(d) / "private"
+            private.mkdir()
+            redirected = Path(d) / "shared"
+            redirected.symlink_to(private, target_is_directory=True)
+            out = redirected / "report.json"
+            self.assertEqual(main([str(p), "--out", str(out)]), 2)
+            self.assertFalse((private / "report.json").exists())
+
     def test_backup_cannot_be_overwritten_by_report(self):
         with tempfile.TemporaryDirectory() as d:
             p = Path(d) / "sample.rbk"
