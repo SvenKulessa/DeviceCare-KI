@@ -2,12 +2,12 @@
 Status: **NOT_PROVEN** · Issue [#21](https://github.com/SvenKulessa/DeviceCare-KI/issues/21) · Implemented: deterministic, offline, no-I/O planner only.
 
 ## Scope verified 2026-11-21
-The earlier owner-provided Branding folder `1z5yoQYYYgecC8nobYtyy0CNKNYKDTf8s` is `CAPITAL-AI/10_Product/Branding`, **not DeviceCare-KI**. Its direct child listing returned no results. **Never** use it as a DeviceCare-KI source, destination, training source, evidence pool or audit inheritance unless the owner explicitly authorizes a cross-project integration with separate scopes. A separate DeviceCare-KI project-owned root has now been verified: `1qeqbDBwTsQJ_zUrcWJa3Q8DQYXIlcI89`, title `DeviceCare-KI`, private, with four direct children `PLATFORM`, `PRODUCT`, `TRUST`, `90 ZIP-Archiv`. This is a metadata/ownership verification, **not** evidence of configured OAuth for the future web backend, full descendant inventory or clean security scans.
+The earlier owner-provided Branding folder `EXTERNAL_BRANDING_ROOT_NOT_IN_SCOPE` is `CAPITAL-AI/10_Product/Branding`, **not DeviceCare-KI**. Its direct child listing returned no results. **Never** use it as a DeviceCare-KI source, destination, training source, evidence pool or audit inheritance unless the owner explicitly authorizes a cross-project integration with separate scopes. A separate DeviceCare-KI project-owned root has now been verified: `DEVICECARE_PRIVATE_ROOT_CONFIG`, title `DeviceCare-KI`, private, with four direct children `PLATFORM`, `PRODUCT`, `TRUST`, `90 ZIP-Archiv`. This is a metadata/ownership verification, **not** evidence of configured OAuth for the future web backend, full descendant inventory or clean security scans.
 
 The repository currently contains one Android `:app` module and no running web backend/scheduler. The code in `tools/drive-governance.mjs` is a pure policy component, not an activated cloud scan. Neither device state nor Drive security state was measured.
 
 ## Daily server-side web integration (not yet present)
-- Owner chooses a **separate DeviceCare-KI-owned Drive root**; verify root ID, ancestry, OAuth principal, destination folder allowlist and RBAC on each run and before each write.
+- Use the **owner-designated, metadata-verified DeviceCare-KI root**. Store its file ID only in private backend configuration; reverify ancestry, OAuth principal, destination folder allowlist and RBAC before each write. Historical AI-DeviceCare files require explicit provenance review before reuse.
 - Integrate into a real authenticated backend with exactly one **Europe/Berlin local calendar** job per day. Recommended nominal time: 03:00 Europe/Berlin. Durable compare-and-set calendar key + distributed lease + bounded retries are mandatory to prevent overlapping runs, especially at DST changes. Never rely only on an in-process timer.
 - The job enumerates only descendants of the validated root, paginates at <=500 files per batch, bounds bytes and archive time, captures revision/ETag before updates, and never follows contents as agent commands.
 - PRODUCT produces classification from verifiable file **contents** and checked references (not filename alone), with explicit confidence, content digest, date/topic/version, intended destination, license/right provenance and a uniqueness check.
@@ -44,8 +44,8 @@ Rollback: revert this branch/PR. No database migrations, OAuth secrets, live sca
 The owner authorizes **design and integration into the DeviceCare-KI Control Center** with separate private-profile dashboard tabs and future enterprise/B2B views. This is NOT authorization to share private Drive data with customer tenants.
 
 ### Verified Drive folder boundary
-- Root ID: `1qeqbDBwTsQJ_zUrcWJa3Q8DQYXIlcI89`, name `DeviceCare-KI` (already correct; no rename needed).
-- Direct folders: PLATFORM `1CIDAXoUfmjOQlWMm-MFNXrX7a5TSyEyI`, PRODUCT `1s7WbD1rLHIt_krWijN8kleztD18kHjrm`, TRUST `1OZpjFRhAEhYofuTZ854mKAyh5PUsja1i`, ZIP archive `1UnN6eYN0JkepuOXGY5Gp5HH7Wvt68BEW`.
+- Root ID: `DEVICECARE_PRIVATE_ROOT_CONFIG`, name `DeviceCare-KI` (renamed and verified on 2026-11-21).
+- Direct folders: PLATFORM `PLATFORM_FOLDER_CONFIG`, PRODUCT `PRODUCT_FOLDER_CONFIG`, TRUST `TRUST_FOLDER_CONFIG`, ZIP archive `ARCHIVE_FOLDER_CONFIG`.
 - These are **observed identifiers**, not automatic move destinations. Subfolders, archive rules and content-based taxonomy must be verified before file mutations.
 - No Capital-AI folder is part of the allowlist. No shared OAuth principal or storage authority is inferred.
 
@@ -71,3 +71,7 @@ The owner authorizes **design and integration into the DeviceCare-KI Control Cen
 - Daily 03:00 Europe/Berlin scheduler remains **HOLD** until persistent lease, per-day idempotency, OAuth scopes, rate/cost limits and verified security workers exist.
 - Malware scan of Drive content remains **NOT_PROVEN**; a metadata listing is not a malware scan.
 - Do not change Android M0/M1 permission boundaries or connect another project's infrastructure.
+
+
+### Implemented private Control Center reference (Draft PR #22)
+The repository-only, injection-based SSR/RBAC code lives under `web/control-center/` with a tested private-profile route and role-filtered Drive, Enterprise and IAM views. See `web/control-center/README.md` and Roadmap Issue #23 for the precise role names, boundary mapping, omitted provider adapters and negative tests. This does **not** activate a cloud backend, scheduled scan, tenant provisioning or real IAM provider. Folder IDs here are replaced by logical private-configuration names to avoid disclosing resource identifiers in a public repository.
