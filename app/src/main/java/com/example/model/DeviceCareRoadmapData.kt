@@ -297,6 +297,31 @@ object DeviceCareRoadmapData {
         nonNegotiableBoundary = "Kein stilles Hochladen oder Veröffentlichen in Google Play.",
       ),
 
+      RoadmapTask(
+        id = "rem-p1-drive-loop",
+        code = "P1-DRIVE",
+        title = "Drive Deep-Scan: täglicher SOLO2-Loop & Owner-Stop",
+        subtitle = "Content-Audit, Security-Gates, 45-Tage-Archivierung & WAIT_OWNER",
+        category = PlanCategory.REMEDIATION,
+        status = GovernanceStatus.NOT_PROVEN,
+        owner = "PLATFORM / TRUST / QUALITY",
+        blockingRelease = false,
+        sourceDoc = "docs/DEVICECARE_DRIVE_GOVERNANCE.md · GitHub Issue #21",
+        description =
+          "Geplant ist ein separater, authentifizierter Web-Backend-Job für den projektisolierten Drive-Scan einmal täglich. Der Loop pausiert bei unklaren Dateien, fehlenden Sicherheitsnachweisen oder Owner-Entscheidungen dauerhaft mit WAIT_OWNER/STOPPED. Aktuell ist nur ein synthetisch testbarer PLAN_ONLY-Vertrag vorhanden: kein produktiver Web-Job, kein Drive-Zugriff und keine Archivierung.",
+        acceptanceCriteria =
+          listOf(
+            "Verifizierter eigener DeviceCare-KI-Drive-Root und strikte Zielordner-Allowlist; keine Fremdprojekt-Dateien",
+            "Ein serverseitiger Lauf pro Berliner Kalendertag mit Lease, Checkpoint und Wiederanlauf-Schutz",
+            "Inhalt, Malware/Secrets/Privatsphaere/Lizenzen, Referenzen und Integritaet vor jeder Rename-/Move-Aktion unabhaengig geprueft",
+            "Nur nach belegter Inaktivitaet >45 Tage: komprimierte, hashgebundene Sicherung mit Restore-Test; Originale bleiben erhalten",
+            "WAIT_OWNER/STOPPED bei Unklarheit, explizites Owner-Resume mit Revalidierung; Audit-Readback nach jeder Aenderung",
+          ),
+        nonNegotiableBoundary =
+          "Kein automatischer Cloud-Scan, Drive-Schreibzugriff oder Cross-Projekt-Zugriff ohne verifizierte Freigaben und Infrastruktur.",
+        canMarkVerifiedLocally = false,
+      ),
+
       // --- 8 Physische Android 15 QA Tests (M1-ANDROID15-QA.md) ---
       RoadmapTask(
         id = "qa-1-no-auto",
