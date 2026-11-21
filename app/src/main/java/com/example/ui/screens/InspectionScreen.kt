@@ -659,6 +659,12 @@ private fun InspectionResultSection(
       rows = result.permissionObservations,
     )
 
+    // Inventory follows an explicit inspection; each sensor sample needs a separate tap.
+    HardwareInspectionSection(
+      inspectionTimestamp = result.collectedAtMillis,
+      isStale = isStale,
+    )
+
     // System-guided Android Settings
     Card(
       shape = MaterialTheme.shapes.large,
