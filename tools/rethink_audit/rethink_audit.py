@@ -181,8 +181,14 @@ def compare_baseline(result: dict, path: Path) -> None:
 
 
 def _atomic_private_write(destination: Path, value: dict) -> None:
+    destination = destination.absolute()
+    # Reject symlinks in the entire destination path, not just the report filename.
+    # A linked parent could silently redirect a private report into a shared directory.
+    if any(part.is_symlink() for part in (destination, *destination.parents)):
+        raise ValueError("Unsafe destination")
     destination.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-    if destination.is_symlink() or not destination.parent.is_dir():
+    if (not destination.parent.is_dir()
+        or any(part.is_symlink() for part in (destination, *destination.parents))):
         raise ValueError("Unsafe destination")
     # Create in the same directory and replace only after the full JSON is written.
     fd, tmp = tempfile.mkstemp(prefix=".rethink-audit-", dir=destination.parent)
