@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { Roles, authorize, tabsFor, validateOwnerPlanApproval } from "./iam.mjs";
+import { Roles, authorize, tabsFor, validateOwnerPlanApproval, evaluateTenantRoleChange } from "./iam.mjs";
 import { createControlCenterHandler } from "./view.mjs";
 
 const now = new Date("2026-11-21T12:30:00Z");
@@ -117,4 +117,27 @@ test("untrusted output is escaped and cannot inject HTML or forged counts",async
   assert.equal(r.statusCode,200);
   assert.doesNotMatch(r.body,/<img src=x/);
   assert.match(r.body,/NOT_PROVEN/);
+});
+
+test("tenant admin cannot grant own admin, project owner, cross-tenant or service roles",()=>{
+  const base={identity:identity(),membership:member(Roles.ENTERPRISE_ADMIN,"tenant"),now,
+    change:{ status:"VERIFIED",serverVerified:true,actorIntentVerified:true,
+      tenantId:"company-1",targetSubjectId:"uid-2",newRole:Roles.FLEET_OPERATOR,
+      expectedMembershipVersion:"v4",targetMembershipVerified:true,
+      lastAdminProtected:true }};
+  assert.equal(evaluateTenantRoleChange(base).reason,"PLAN_ONLY");
+  assert.equal(evaluateTenantRoleChange({...base,
+    change:{...base.change,newRole:Roles.OWNER}}).allowed,false);
+  assert.equal(evaluateTenantRoleChange({...base,
+    change:{...base.change,targetSubjectId:"uid-1"}}).allowed,false);
+  assert.equal(evaluateTenantRoleChange({...base,
+    change:{...base.change,tenantId:"company-2"}}).allowed,false);
+  assert.equal(evaluateTenantRoleChange({...base,
+    change:{...base.change,serverVerified:false}}).allowed,false);
+  assert.equal(evaluateTenantRoleChange({...base,
+    identity:{...identity(),stepUpVerified:false}}).allowed,false);
+  assert.equal(a(Roles.FLEET_OPERATOR,"tenant","tenant:dashboard",
+    {scope:"tenant",tenantId:"company-1"}).allowed,true);
+  assert.equal(a(Roles.FLEET_OPERATOR,"tenant","tenant:iam:manage",
+    {scope:"tenant",tenantId:"company-1"}).allowed,false);
 });
