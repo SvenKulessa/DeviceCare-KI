@@ -77,8 +77,15 @@ object HardwareTestPolicy {
     }
 }
 
+internal object HardwareInventoryLimits {
+  const val MAX_ENTRIES = 128
+
+  /** Reserve space for known features before adding any unrecognized system flags. */
+  fun additionalFeatureSlots(knownCount: Int): Int =
+    (MAX_ENTRIES - knownCount.coerceAtLeast(0)).coerceAtLeast(0)
+}
+
 object AndroidHardwareInventory {
-  private const val MAX_ENTRIES = 128
 
   private data class KnownFeature(val id: String, val label: String, val hint: String)
   private val knownFeatures = listOf(
@@ -137,7 +144,7 @@ object AndroidHardwareInventory {
       sensorError = "Sensorliste konnte nicht gelesen werden"
       null
     }
-    val sensors = allSensors.orEmpty().take(MAX_ENTRIES).map {
+    val sensors = allSensors.orEmpty().take(HardwareInventoryLimits.MAX_ENTRIES).map {
       HardwareSensor(
         type = it.type,
         name = it.name,
@@ -154,14 +161,15 @@ object AndroidHardwareInventory {
       val pm = context.packageManager
       val observed = pm.systemAvailableFeatures.orEmpty().mapNotNull { it.name }.toSet()
       val knownIds = knownFeatures.map { it.id }.toSet()
-      val known = knownFeatures.map {
+      val known = knownFeatures.take(HardwareInventoryLimits.MAX_ENTRIES).map {
         HardwareFeature(it.id, it.label, pm.hasSystemFeature(it.id), it.hint)
       }
-      val other = observed.filterNot { it in knownIds }.sorted().take(MAX_ENTRIES).map {
+      val other = observed.filterNot { it in knownIds }.sorted()
+        .take(HardwareInventoryLimits.additionalFeatureSlots(known.size)).map {
         HardwareFeature(it, it, true, "Systemmerkmal erkannt; kein sicherer automatischer Funktionstest verfügbar.")
       }
       features = known + other
-      featureTotal = known.size + observed.count { it !in knownIds }
+      featureTotal = knownFeatures.size + observed.count { it !in knownIds }
     } catch (_: RuntimeException) {
       featureError = "Hardwaremerkmale konnten nicht gelesen werden"
       features = emptyList()
