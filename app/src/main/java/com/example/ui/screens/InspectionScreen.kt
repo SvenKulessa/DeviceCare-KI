@@ -54,6 +54,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -72,6 +74,8 @@ import androidx.compose.ui.unit.dp
 import com.example.R
 import com.example.core.evidence.ObservationStatus
 import com.example.devicecare.InspectionResult
+import com.example.devicecare.OwnAppInstallIdentity
+import com.example.devicecare.readOwnAppInstallIdentity
 import com.example.devicecare.ObservationDisplayRow
 import com.example.devicecare.SettingsLaunchResult
 import com.example.devicecare.openDeviceSettings
@@ -194,6 +198,13 @@ fun InspectionScreen(
         }
       }
 
+      // Explicit, local QA readback only. No background scan or persistence.
+      item {
+        Box(modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp)) {
+          OwnAppInstallIdentityCard()
+        }
+      }
+
       // Quality & Scoring Pipeline Truth Cards (always visible per DeviceCareHome contract)
       item {
         Box(modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp)) {
@@ -249,6 +260,62 @@ fun InspectionScreen(
       }
 
       item { Spacer(modifier = Modifier.height(12.dp)) }
+    }
+  }
+}
+
+@Composable
+private fun OwnAppInstallIdentityCard() {
+  val context = LocalContext.current
+  val snapshot = remember { mutableStateOf<OwnAppInstallIdentity?>(null) }
+
+  Card(
+    modifier = Modifier.fillMaxWidth().testTag("own_app_identity_card"),
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+  ) {
+    Column(
+      modifier = Modifier.fillMaxWidth().padding(16.dp),
+      verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+      Text(
+        text = "Installierte App-Identität (lokaler QA-Abgleich)",
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.semantics { heading() },
+      )
+      FilledTonalButton(
+        onClick = { snapshot.value = readOwnAppInstallIdentity(context) },
+        modifier = Modifier.minimumInteractiveComponentSize().testTag("own_app_identity_read_button"),
+      ) {
+        Text("App-Version und Signatur prüfen")
+      }
+      snapshot.value?.let { identity ->
+        Column(
+          modifier = Modifier.fillMaxWidth().testTag("own_app_identity_readback"),
+          verticalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+          Text("Paket: ${identity.packageName}")
+          Text("Version: ${identity.versionName ?: "NOT_PROVEN"} (${identity.versionCode ?: "NOT_PROVEN"})")
+          Text("Lokaler Android-PackageManager: ${identity.evidenceStatus}")
+          if (identity.signerFingerprintsSha256.isNotEmpty()) {
+            identity.signerFingerprintsSha256.forEachIndexed { index, fingerprint ->
+              Text("Signer #${index + 1} · SHA-256")
+              Text(
+                text = fingerprint.chunked(16).joinToString("\n"),
+                style = MaterialTheme.typography.bodySmall,
+              )
+            }
+          } else {
+            Text("Signer-Fingerprint: NOT_PROVEN (${identity.limitationCode ?: "NO_SIGNER"})")
+          }
+        }
+      }
+      Text(
+        "Keine APK-Dateihash-Prüfung und keine Update-Freigabe. " +
+          "Signer, Paket und Version extern mit dem zugeordneten CI-Artefakt vergleichen; " +
+          "keine Deinstallation oder Überschreibung ohne Backup-/Rollback-Prüfung.",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
     }
   }
 }

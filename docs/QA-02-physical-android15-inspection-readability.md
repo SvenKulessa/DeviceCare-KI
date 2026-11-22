@@ -26,3 +26,23 @@
 **Solange CI, Rulesets oder physische Android-15-Readbacks nicht vollständig belegt sind: `NOT_PROVEN`.**
 Kein automatischer Merge, Release, Deployment, Publishing oder produktive Datenmutation aus diesem Nachweis.
 Rollback: Feature-PR schließen bzw. den isolierten Diff revertieren; keine Migration oder Backfill nötig.
+
+
+## P0: lokale Installationsidentität (SOLO2 · 2026-11-22)
+
+Der Nutzer kann in der bestehenden Prüfoberfläche **explizit** auf
+„App-Version und Signatur prüfen“ tippen. Ein einmaliger, nicht persistierter
+`PackageManager`-Readback zeigt die eigene Paket-ID, Version und die SHA-256-
+Fingerprints der **aktuell installierten Signer-Zertifikate**. Es werden keine
+fremden Apps inventarisiert, keine neuen Android-Berechtigungen beantragt und
+keine Daten an einen Provider übertragen. Bei unzugänglichen Signaturen wird
+`NOT_PROVEN` statt eines angenommenen Signers angezeigt.
+
+**Grenzen:** `OBSERVED` ist nur eine lokale Android-API-Beobachtung, keine
+unabhängige Zertifikats- oder APK-Dateihash-Prüfung. Der CI-Artefakt-SHA-256 und
+PR-HEAD/Test-Merge-SHA müssen getrennt dokumentiert werden; durch Vergleich mit
+signiertem CI-Artefakt, sicherem Backup-/Rollback-Pfad und unabhängigem
+physischen Readback entsteht erst Update-Evidence. Keine Installation,
+Deinstallation oder Überschreibung aus dieser Anzeige ableiten.
+
+Rollback: den isolierten PR-Diff revertieren; keine Datenmigration notwendig.
