@@ -26,6 +26,15 @@ Für `FULL_SCREENREADER` bleibt ein belastbarer Ansagenachweis erforderlich.
 `NOT_PROVEN`. Der QA-04-Ausgangsstatus ist unverändert `NOT_PROVEN`,
 bis konkrete Geräte-Evidence eingesehen wurde.
 
+## Versionierung und Bestandsschutz
+
+Die vorherige Vertragsversion `devicecare-screenreader-evidence/1` verlangt alle
+fünf Checks einschließlich Ansagenachweis. Historische v1-Berichte behalten
+ihre ursprüngliche Bewertung. Die Owner-Freigabe stummer visueller Nachweise
+ist die neue, separat versionierte `devicecare-screenreader-evidence/2`-
+Bewertung mit explizitem Geltungsbereich. Keine automatische Statusmigration
+alter Aufnahmen, ohne tatsächlichen unabhängigen Re-Review.
+
 ## Gegenstand und Grenzen
 
 - **Automatisiert:** Compose-Semantik, Überschriften, Content-Descriptions,
@@ -70,7 +79,7 @@ bis konkrete Geräte-Evidence eingesehen wurde.
 
 ```json
 {
-  "contract": "devicecare-screenreader-evidence/1",
+  "contract": "devicecare-screenreader-evidence/2",
   "qa_id": "QA-04",
   "status": "NOT_PROVEN",
   "verification_scope": "VISUAL_DEVICE_FUNCTIONS",
