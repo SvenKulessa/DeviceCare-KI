@@ -198,13 +198,6 @@ fun InspectionScreen(
         }
       }
 
-      // Explicit, local QA readback only. No background scan or persistence.
-      item {
-        Box(modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp)) {
-          OwnAppInstallIdentityCard()
-        }
-      }
-
       // Quality & Scoring Pipeline Truth Cards (always visible per DeviceCareHome contract)
       item {
         Box(modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp)) {
@@ -256,6 +249,13 @@ fun InspectionScreen(
             onOpenAppPermissions = onOpenAppPermissions,
             onOpenRoadmap = onOpenRoadmap,
           )
+        }
+      }
+
+      // Explicit, local QA readback only. No background scan or persistence.
+      item {
+        Box(modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp)) {
+          OwnAppInstallIdentityCard()
         }
       }
 
