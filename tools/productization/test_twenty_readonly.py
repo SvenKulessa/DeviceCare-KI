@@ -33,7 +33,7 @@ class TwentyReadonlyTests(unittest.TestCase):
                 "pageInfo": {"hasNextPage": False},
             }
         result = read_product(candidate or self.candidate,
-            base_url="https://crm.devicecare.example",
+            base_url="https://api.twenty.com",
             token="synthetic-token-not-secret", transport=transport)
         return result, calls
 
@@ -45,6 +45,7 @@ class TwentyReadonlyTests(unittest.TestCase):
         self.assertEqual(len(calls), 1)
         parsed = urlsplit(calls[0][0])
         self.assertEqual(parsed.path, "/rest/products")
+        self.assertEqual(parsed.netloc, "api.twenty.com")
         query = parse_qs(parsed.query)
         self.assertEqual(query["limit"], ["2"])
         self.assertEqual(query["fields"], ["id,name,externalKey,sourceSha256"])
@@ -73,6 +74,8 @@ class TwentyReadonlyTests(unittest.TestCase):
             "http://crm.example.com", "https://localhost", "https://crm.example.com:8443",
             "https://user:pass@crm.example.com", "https://crm.example.com/path",
             "https://crm.example.com?token=x",
+            "https://crm.devicecare.example",
+            "https://api.twenty.com.evil.test",
         ):
             with self.subTest(url=url), self.assertRaises(TwentyReadbackError):
                 validate_instance_url(url)
