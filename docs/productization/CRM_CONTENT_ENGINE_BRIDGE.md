@@ -38,7 +38,7 @@ Tests: stdlib unit/negative tests for privacy, unsafe URLs, rights, deterministi
 
 ## Owner decision: Twenty CRM selected (2026-11-22)
 
-Provider: Twenty (self-hosted open-source core preferred; paid cloud is not automatically activated). No Salesforce sandbox is required by Device-Care-KI, and no CAPITAL-AI provider credential, runtime or Salesforce adapter is imported. Any separate CAPITAL-AI CRM decision is independent.
+Provider: Twenty Cloud selected by owner (online workspace and API key reported configured 2026-11-22, but neither provider identity nor access has been read back). Cloud plan, billing, roles and permissions remain NOT_PROVEN; no service activation was performed by this integration. No Salesforce sandbox is required by Device-Care-KI, and no CAPITAL-AI provider credential, runtime or Salesforce adapter is imported. Any separate CAPITAL-AI CRM decision is independent.
 
 Twenty has built-in People, Companies and Opportunities; **Products is a custom workspace object** and MUST NOT be assumed to exist. The owner configures this **in the dedicated Device-Care-KI workspace** through Twenty Settings -> Data Model, with exact API plural name `products` (singular Product), scalar text `name` label plus custom text fields `externalKey` and `sourceSha256`. Record identity is a namespaced `externalKey=DEVICE_CARE_KI:<productId>` (e.g. DEVICE_CARE_KI:device-health). Validate exact field API names against the authenticated workspace's generated API documentation before first call. Prefer a unique constraint on externalKey where supported; the adapter rejects any duplicate return.
 
@@ -52,11 +52,12 @@ Readback implementation:
 Reproduce (from DeviceCare-KI repository root):
 ```sh
 python3 -m unittest discover -s tools/productization -p 'test_*.py'
-TWENTY_BASE_URL=https://crm.example.invalid \
 TWENTY_READONLY_API_KEY=<secret-in-owner-protected-runtime> \
 python3 tools/productization/twenty_readonly.py --input /private/reviewed-product-candidate.json
 ```
-Do **not** use the example host as a real endpoint. Set environment variables through a protected owner-controlled runtime; never write raw secrets in shell history. The example above is syntax only, not a real connection.
+Twenty Cloud endpoint is hardbound to https://api.twenty.com in the CLI, per official Twenty API docs. Do not use user-supplied hosts or custom browser workspace URLs for API bearer-token calls. Inject TWENTY_READONLY_API_KEY through an owner-protected process environment; never place the secret in shell history, scripts, repository, chat or Drive. The example is syntax only, not a live connection.
 
 Official Twenty reference: https://docs.twenty.com/developers/extend/api ; https://docs.twenty.com/getting-started/core-concepts/data-model .
-The first live Twenty readback remains `NOT_PROVEN` until the workspace is provisioned, the read-only role has been independently confirmed, and a real provider response is checked. Local tests are synthetic. Existing Android CI already runs all `tools/productization/test_*.py` via the existing test step; no new required CI gate. Rollback: revert this scoped feature branch; no CRM/device state changed.
+The owner has reported creating an online Twenty workspace and API key, but they have not been independently read back. The first live Twenty readback remains `NOT_PROVEN` until the custom Products object/API fields and read-only role have been confirmed with a real provider response. Local tests are synthetic. Existing Android CI already runs all `tools/productization/test_*.py` via the existing test step; no new required CI gate. Rollback: revert this scoped feature branch; no CRM/device state changed.
+
+Cloud endpoint source: https://docs.twenty.com/developers/extend/api (Cloud base URL https://api.twenty.com/; Bearer authentication; role-scoped API keys; tenant-specific API schemas). Until a dedicated Products-read role is proven, existing API-key privilege is NOT_PROVEN and must not be treated as read-only. A workspace API key is not a production/commercial launch approval.
