@@ -64,16 +64,13 @@ fun presentInspection(
         "Speicherdruck" to profile.memoryPressure.describe("nicht gemeldet", "aktiv"),
         "Energiesparmodus" to profile.powerSaver.describe("aus", "ein"),
         "Thermische Belastung" to profile.thermal.describe("keine oder leicht", "moderat"),
-        "Akkustand" to battery.availabilityText("battery_percent"),
-        "Ladezustand" to battery.availabilityText("battery_charging"),
-        "Akkutemperatur" to battery.availabilityText("battery_temperature"),
-        "Android-Akkuzustand" to
-          "${battery.availabilityText("battery_health_reported")} (Systemstatus)",
-        "App-Berechtigungen" to
-          permissions.availabilityText(
-            "sampled_packages",
-            "nur für die von Android sichtbare Stichprobe verfügbar",
-          ),
+        "Akkustand" to battery.observedValueText("battery_percent"),
+        "Ladezustand" to battery.observedValueText("battery_charging"),
+        "Akkutemperatur" to battery.observedValueText("battery_temperature"),
+        "Android-Akkuzustand (nur Systemstatus)" to
+          battery.observedValueText("battery_health_reported"),
+        "App-Stichprobe (nur Android-sichtbar)" to
+          permissions.observedValueText("sampled_packages"),
       ),
     batteryObservations = battery.observations.map { it.toDisplayRow() },
     permissionObservations = permissions.observations.map { it.toDisplayRow() },
@@ -123,17 +120,49 @@ private fun ResourceSignal.describe(clear: String, active: String): String =
     ResourceSignal.UNKNOWN -> "unbekannt"
   }
 
-private fun DeviceObservationBatch.availabilityText(
-  id: String,
-  observed: String = "von Android gemeldet",
-): String =
-  when (observations.firstOrNull { it.id == id }?.status) {
-    ObservationStatus.OBSERVED -> observed
+/** Display only allowlisted, actually observed values. Never infer an unavailable signal. */
+private fun DeviceObservationBatch.observedValueText(id: String): String {
+  val observation = observations.firstOrNull { it.id == id }
+  return when (observation?.status) {
+    ObservationStatus.OBSERVED -> {
+      val raw = observation.value ?: return "unbekannt"
+      val translated =
+        when (id) {
+          "battery_charging" ->
+            when (raw) {
+              "CHARGING" -> "Lädt"
+              "DISCHARGING" -> "Entlädt"
+              "NOT_CHARGING" -> "Lädt nicht"
+              "FULL" -> "Voll geladen"
+              else -> raw
+            }
+          "battery_health_reported" ->
+            when (raw) {
+              "GOOD" -> "Gut (Android-Systemmeldung)"
+              "OVERHEAT" -> "Überhitzt (Android-Systemmeldung)"
+              "DEAD" -> "Defekt (Android-Systemmeldung)"
+              "OVER_VOLTAGE" -> "Überspannung (Android-Systemmeldung)"
+              "UNSPECIFIED_FAILURE" -> "Fehler (Android-Systemmeldung)"
+              "COLD" -> "Kalt (Android-Systemmeldung)"
+              else -> raw
+            }
+          else -> raw
+        }
+      when (observation.unit) {
+        "%" -> "$translated %"
+        "C" -> "$translated °C"
+        "apps" -> "$translated Apps"
+        "count" -> translated
+        null -> translated
+        else -> "$translated ${observation.unit}"
+      }
+    }
     ObservationStatus.UNSUPPORTED -> "nicht verfügbar"
     ObservationStatus.DENIED -> "Zugriff verweigert"
     ObservationStatus.ERROR -> "Abfrage fehlgeschlagen"
     null -> "unbekannt"
   }
+}
 
 private fun PermissionScanBudget.describe(apiLevel: Int): String {
   val reason =
