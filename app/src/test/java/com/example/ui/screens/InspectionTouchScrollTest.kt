@@ -8,6 +8,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.test.swipeUp
 import com.example.devicecare.InspectionResult
 import com.example.ui.DeviceCareUiState
@@ -91,11 +92,17 @@ class InspectionTouchScrollTest {
     }
     rule.waitForIdle()
 
+    // A new result can change lazy item heights and leave the viewport at its scroll end.
+    // Reposition with a real reverse swipe before testing a second forward touch gesture.
+    // This avoids asserting movement past the current end of the scrollable content.
+    scrollNode.performTouchInput { swipeDown() }
+    rule.waitForIdle()
+    assertEquals("Reverse swipe must not start a scan", 1, deliberateScanTaps)
     val afterRecomposition = verticalOffset()
     scrollNode.performTouchInput { swipeUp() }
     rule.waitForIdle()
     assertTrue(
-      "Touch drag must continue to scroll after result recomposition",
+      "A fresh touch drag must scroll after result recomposition",
       verticalOffset() > afterRecomposition + 1f,
     )
     assertEquals("Recomposition and drag must not initiate a second scan", 1, deliberateScanTaps)
