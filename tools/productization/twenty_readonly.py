@@ -39,7 +39,10 @@ def validate_instance_url(value: str) -> str:
             raise TwentyReadbackError("TWENTY_ORIGIN_UNSAFE")
     except ValueError:
         raise TwentyReadbackError("TWENTY_ORIGIN_UNSAFE") from None
-    return "https://" + u.hostname.lower()
+    # Owner selected Twenty Cloud; never send a bearer token to an arbitrary host.
+    if u.hostname.lower() != "api.twenty.com":
+        raise TwentyReadbackError("TWENTY_CLOUD_ORIGIN_NOT_ALLOWLISTED")
+    return "https://api.twenty.com"
 
 def candidate_from_reviewed(raw: dict) -> dict:
     """Validate the offline exported envelope, not live device state."""
@@ -156,7 +159,7 @@ def main() -> None:
     try:
         raw = json.loads(opts.input.read_text(encoding="utf-8"))
         result = read_product(
-            raw, base_url=os.getenv("TWENTY_BASE_URL", ""),
+            raw, base_url="https://api.twenty.com",
             token=os.getenv("TWENTY_READONLY_API_KEY", ""),
         )
         print(json.dumps(result, indent=2, sort_keys=True))
