@@ -366,13 +366,13 @@ object DeviceCareRoadmapData {
         blockingRelease = true,
         sourceDoc = "docs/SCREENREADER-QA.md §QA-04",
         description =
-          "Aktiviere einen Android-Screenreader manuell (Name/Version dokumentieren) und prüfe Überschriften-Navigation, Fokusreihenfolge, verständliche Ansagen nach Scan-Ergebnissen, 200% Schrift-/Anzeigegröße, Querformat, Hell/Dunkel und 320dp Breite.",
+          "Aktiviere einen Android-Screenreader manuell (Name/Version dokumentieren) und prüfe Überschriften-Navigation, sichtbare Fokusreihenfolge, Scan-Ergebnisse, 200% Schrift-/Anzeigegröße, Querformat, Hell/Dunkel und 320dp Breite. Stumme Aufnahmen sind für sichtbare Gerätefunktionen zulässig; hörbare Ansagen bleiben ohne gesonderten Beleg NOT_PROVEN.",
         acceptanceCriteria =
           listOf(
             "Kein Text-Clipping bei 200% Schriftgröße",
-            "Verständliche Screenreader-Ansagen bei Scan-Ergebnis und Einstellungs-Fehlern",
+            "Stumme Screenreader-Aufnahmen sind für sichtbare Navigation, Fokus und Ergebniswechsel als Geräte-Evidence zulässig",
           ),
-        nonNegotiableBoundary = "Ohne eigene AccessibilityService-Berechtigung testen; Gerätedaten und Ansagen belegen, nicht bloß UI-Semantik.",
+        nonNegotiableBoundary = "Ohne eigene AccessibilityService-Berechtigung testen; hörbare Ansagen ohne Ton oder gesondertes Protokoll bleiben NOT_PROVEN.",
         canMarkVerifiedLocally = false,
       ),
       RoadmapTask(

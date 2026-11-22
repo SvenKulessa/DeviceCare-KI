@@ -19,6 +19,15 @@ class ScreenReaderRoadmapTest {
   }
 
   @Test
+  fun `silent physical screenreader video is allowed for observable app functions`() {
+    val qa = DeviceCareRoadmapData.tasks.single { it.id == "qa-4-a11y" }
+    assertTrue(qa.acceptanceCriteria.any { it.contains("Stumme Screenreader-Aufnahmen") })
+    assertTrue(qa.nonNegotiableBoundary.contains("hörbare Ansagen"))
+    assertTrue(qa.nonNegotiableBoundary.contains("NOT_PROVEN"))
+    assertFalse(qa.canMarkVerifiedLocally)
+  }
+
+  @Test
   fun `emulator semantics remain distinct from screenreader acceptance`() {
     val emulator = DeviceCareRoadmapData.tasks.single { it.id == "rem-p1-emu" }
     assertEquals(GovernanceStatus.IN_PROGRESS, emulator.status)
