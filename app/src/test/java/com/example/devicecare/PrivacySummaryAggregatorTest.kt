@@ -37,6 +37,32 @@ class PrivacySummaryAggregatorTest {
   }
 
   @Test
+  fun `unbound security snapshot must not complete the local device security gate`() {
+    val unbound = SystemSecuritySnapshot(
+      collectedAtMillis = nowMillis,
+      androidRelease = "15",
+      apiLevel = 35,
+      securityPatch = "2026-11-05",
+      playServicesVersion = "26.44.12",
+      playStoreVersion = "54.0",
+      webViewVersion = "158.0",
+      webViewProvider = "com.google.android.webview",
+    )
+    val report = PrivacySummaryAggregator.aggregate(
+      appsScanResult = null,
+      securitySnapshot = unbound,
+      inspectionResult = null,
+    )
+    assertFalse(report.hasSecurityCheck)
+    assertEquals(0, report.checksCompletedCount)
+    assertEquals(PrivacyPostureTier.UNASSESSED, report.postureTier)
+    assertEquals(PatchAgeSignal.NOT_PROVEN, report.patchAgeSignal)
+    assertEquals(null, report.securityPatch)
+    assertEquals(null, report.androidReleaseLabel)
+    assertTrue(report.adviceItems.any { it.id == "run_missing_checks" })
+  }
+
+  @Test
   fun `stale security patch and multi critical apps trigger high priority advice`() {
     val appsScan =
       InstalledAppsScanResult(
@@ -99,6 +125,8 @@ class PrivacySummaryAggregatorTest {
         playStoreVersion = "54.0",
         webViewVersion = "158.0",
         webViewProvider = "com.google.android.webview",
+        // Synthetic fixture simulates the collector path; not real hardware evidence.
+        origin = SystemSnapshotOrigin.LOCAL_SYSTEM_API,
       )
 
     val report =
@@ -155,6 +183,8 @@ class PrivacySummaryAggregatorTest {
         playStoreVersion = "54.0",
         webViewVersion = "158.0",
         webViewProvider = "com.google.android.webview",
+        // Synthetic fixture simulates the collector path; not real hardware evidence.
+        origin = SystemSnapshotOrigin.LOCAL_SYSTEM_API,
       )
     val aiReport =
       PrivacyAnalysisReport(

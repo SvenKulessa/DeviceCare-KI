@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" role="img" aria-label="DeviceCare KI Universe vier Android-Ansichten Konzeptmockup, keine realen Gerätemesswerte">
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#060B20"/><stop offset="1" stop-color="#241A55"/></linearGradient></defs>
+<rect width="1200" height="750" fill="url(#bg)"/>
+<g fill="#B8C3D3"><circle cx="55" cy="58" r="2"/><circle cx="850" cy="80" r="3"/><circle cx="1095" cy="49" r="2"/></g>
+<text x="38" y="70" fill="#FFFFFF" font-size="60" font-weight="800" font-family="Arial">DeviceCare <tspan fill="#F5C24B">KI</tspan></text>
+<text x="40" y="112" fill="#B8C3D3" font-size="26" font-family="Arial">Universe UI · referenzielles Layout ohne Live-Evidence</text>
+<g transform="translate(30,150)">
+ <rect x="0" y="0" width="268" height="505" rx="33" fill="#020716" stroke="#B8C3D3" stroke-width="5"/>
+ <rect x="12" y="16" width="244" height="471" rx="24" fill="#0B1435" stroke="#00E6FF"/>
+ <circle cx="134" cy="36" r="8" fill="#020716"/>
+ <text x="28" y="82" fill="#FFFFFF" font-size="23" font-family="Arial" font-weight="700">Übersicht</text>
+ <path d="M28 101h210" stroke="#00E6FF" opacity=".7"/>
+ <path d="M43 150 Q134 95 225 150" stroke="#8A3DFF" fill="none" stroke-width="2"/>
+ <path d="M134 112 L164 126 L160 167 Q156 184 134 194 Q112 184 108 167 L104 126Z" fill="#122245" stroke="#F5C24B" stroke-width="4"/>
+ <rect x="123" y="143" width="22" height="27" rx="4" stroke="#00E6FF" fill="none" stroke-width="3"/>
+ <rect x="26" y="212" width="216" height="40" rx="11" fill="#122245" stroke="#345D85"/><text x="36" y="237" fill="#FFFFFF" font-family="Arial" font-size="16">Gerätezustand</text><rect x="26" y="261" width="216" height="40" rx="11" fill="#183654" stroke="#345D85"/><text x="36" y="286" fill="#F5C24B" font-family="Arial" font-size="16">Nicht geprüft</text><rect x="26" y="310" width="216" height="40" rx="11" fill="#122245" stroke="#345D85"/><text x="36" y="335" fill="#FFFFFF" font-family="Arial" font-size="16">Lokale Prüfung starten</text><rect x="26" y="359" width="216" height="40" rx="11" fill="#122245" stroke="#345D85"/><text x="36" y="384" fill="#FFFFFF" font-family="Arial" font-size="16">Sicherheit   •   Akku</text><rect x="26" y="408" width="216" height="40" rx="11" fill="#122245" stroke="#345D85"/><text x="36" y="433" fill="#FFFFFF" font-family="Arial" font-size="16">System- & Google-Check</text>
+ <path d="M110 468h48" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+ </g><g transform="translate(325,150)">
+ <rect x="0" y="0" width="268" height="505" rx="33" fill="#020716" stroke="#B8C3D3" stroke-width="5"/>
+ <rect x="12" y="16" width="244" height="471" rx="24" fill="#0B1435" stroke="#00E6FF"/>
+ <circle cx="134" cy="36" r="8" fill="#020716"/>
+ <text x="28" y="82" fill="#FFFFFF" font-size="23" font-family="Arial" font-weight="700">System- & Google-Check</text>
+ <path d="M28 101h210" stroke="#00E6FF" opacity=".7"/>
+ <path d="M43 150 Q134 95 225 150" stroke="#8A3DFF" fill="none" stroke-width="2"/>
+ <path d="M134 112 L164 126 L160 167 Q156 184 134 194 Q112 184 108 167 L104 126Z" fill="#122245" stroke="#F5C24B" stroke-width="4"/>
+ <rect x="123" y="143" width="22" height="27" rx="4" stroke="#00E6FF" fill="none" stroke-width="3"/>
+ <rect x="26" y="212" width="216" height="40" rx="11" fill="#122245" stroke="#345D85"/><text x="36" y="237" fill="#FFFFFF" font-family="Arial" font-size="16">Android-Version</text><rect x="26" y="261" width="216" height="40" rx="11" fill="#183654" stroke="#345D85"/><text x="36" y="286" fill="#F5C24B" font-family="Arial" font-size="16">Lokal beobachtbar</text><rect x="26" y="310" width="216" height="40" rx="11" fill="#122245" stroke="#345D85"/><text x="36" y="335" fill="#FFFFFF" font-family="Arial" font-size="16">Sicherheitspatch</text><rect x="26" y="359" width="216" height="40" rx="11" fill="#122245" stroke="#345D85"/><text x="36" y="384" fill="#FFFFFF" font-family="Arial" font-size="16">Lokal beobachtbar</text><rect x="26" y="408" width="216" height="40" rx="11" fill="#122245" stroke="#345D85"/><text x="36" y="433" fill="#FFFFFF" font-family="Arial" font-size="16">Play Protect: NOT_PROVEN</text>
+ <path d="M110 468h48" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+ </g><g transform="translate(620,150)">
+ <rect x="0" y="0" width="268" height="505" rx="33" fill="#020716" stroke="#B8C3D3" stroke-width="5"/>
+ <rect x="12" y="16" width="244" height="471" rx="24" fill="#0B1435" stroke="#00E6FF"/>
+ <circle cx="134" cy="36" r="8" fill="#020716"/>
+ <text x="28" y="82" fill="#FFFFFF" font-size="23" font-family="Arial" font-weight="700">Akku & Leistung</text>
+ <path d="M28 101h210" stroke="#00E6FF" opacity=".7"/>
+ <path d="M43 150 Q134 95 225 150" stroke="#8A3DFF" fill="none" stroke-width="2"/>
+ <path d="M134 112 L164 126 L160 167 Q156 184 134 194 Q112 184 108 167 L104 126Z" fill="#122245" stroke="#F5C24B" stroke-width="4"/>
+ <rect x="123" y="143" width="22" height="27" rx="4" stroke="#00E6FF" fill="none" stroke-width="3"/>
+ <rect x="26" y="212" width="216" height="40" rx="11" fill="#122245" stroke="#345D85"/><text x="36" y="237" fill="#FFFFFF" font-family="Arial" font-size="16">Akkustatus</text><rect x="26" y="261" width="216" height="40" rx="11" fill="#183654" stroke="#345D85"/><text x="36" y="286" fill="#F5C24B" font-family="Arial" font-size="16">Nur echte Messwerte</text><rect x="26" y="310" width="216" height="40" rx="11" fill="#122245" stroke="#345D85"/><text x="36" y="335" fill="#FFFFFF" font-family="Arial" font-size="16">Batterieprüfung starten</text><rect x="26" y="359" width="216" height="40" rx="11" fill="#122245" stroke="#345D85"/><text x="36" y="384" fill="#FFFFFF" font-family="Arial" font-size="16">Berechtigungen prüfen</text><rect x="26" y="408" width="216" height="40" rx="11" fill="#122245" stroke="#345D85"/><text x="36" y="433" fill="#FFFFFF" font-family="Arial" font-size="16">Kein erfundener Score</text>
+ <path d="M110 468h48" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+ </g><g transform="translate(915,150)">
+ <rect x="0" y="0" width="268" height="505" rx="33" fill="#020716" stroke="#B8C3D3" stroke-width="5"/>
+ <rect x="12" y="16" width="244" height="471" rx="24" fill="#0B1435" stroke="#00E6FF"/>
+ <circle cx="134" cy="36" r="8" fill="#020716"/>
+ <text x="28" y="82" fill="#FFFFFF" font-size="23" font-family="Arial" font-weight="700">KI-Assistenz</text>
+ <path d="M28 101h210" stroke="#00E6FF" opacity=".7"/>
+ <path d="M43 150 Q134 95 225 150" stroke="#8A3DFF" fill="none" stroke-width="2"/>
+ <path d="M134 112 L164 126 L160 167 Q156 184 134 194 Q112 184 108 167 L104 126Z" fill="#122245" stroke="#F5C24B" stroke-width="4"/>
+ <rect x="123" y="143" width="22" height="27" rx="4" stroke="#00E6FF" fill="none" stroke-width="3"/>
+ <rect x="26" y="212" width="216" height="40" rx="11" fill="#122245" stroke="#345D85"/><text x="36" y="237" fill="#FFFFFF" font-family="Arial" font-size="16">Erklären statt behaupten</text><rect x="26" y="261" width="216" height="40" rx="11" fill="#183654" stroke="#345D85"/><text x="36" y="286" fill="#F5C24B" font-family="Arial" font-size="16">Analyse auf Anfrage</text><rect x="26" y="310" width="216" height="40" rx="11" fill="#122245" stroke="#345D85"/><text x="36" y="335" fill="#FFFFFF" font-family="Arial" font-size="13">Cloud nur nach Einwilligung</text><rect x="26" y="359" width="216" height="40" rx="11" fill="#122245" stroke="#345D85"/><text x="36" y="384" fill="#FFFFFF" font-family="Arial" font-size="16">Grenzen transparent</text><rect x="26" y="408" width="216" height="40" rx="11" fill="#122245" stroke="#345D85"/><text x="36" y="433" fill="#FFFFFF" font-family="Arial" font-size="13">Keine Selbstheilung ohne OK</text>
+ <path d="M110 468h48" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+ </g>
+<text x="36" y="710" fill="#F5C24B" font-family="Arial" font-size="21">Nur gestalterische Referenz · Statuswerte niemals aus dem Mockup übernehmen</text>
+</svg>

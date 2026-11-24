@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="DeviceCare KI freigegebene Universe Brand Board v1">
+ <defs><linearGradient id="space" x2="1" y2="1"><stop stop-color="#070D21"/><stop offset=".6" stop-color="#0B1435"/><stop offset="1" stop-color="#25194F"/></linearGradient></defs>
+ <rect width="1200" height="900" fill="url(#space)"/>
+ <g fill="#00E6FF" opacity=".65"><circle cx="112" cy="75" r="3"/><circle cx="923" cy="105" r="3"/><circle cx="1055" cy="277" r="2"/><circle cx="354" cy="113" r="2"/></g>
+ <path d="M0 384 Q595 180 1200 390" stroke="#00E6FF" stroke-width="5" fill="none" opacity=".8"/>
+ <text x="48" y="70" fill="#FFFFFF" font-family="Arial" font-size="29" letter-spacing="7">DEVICECARE KI  ·  APPROVED UNIVERSE BRAND</text>
+ <path d="M100 232 Q227 20 354 232 Q227 343 100 232Z" fill="none" stroke="#F5C24B" stroke-width="8"/>
+ <path d="M227 97 L302 131 L295 240 Q278 279 227 309 Q176 279 159 240 L152 131Z" fill="#0B1435" stroke="#00E6FF" stroke-width="10"/>
+ <rect x="199" y="164" width="55" height="90" rx="10" fill="#091631" stroke="#FFFFFF" stroke-width="5"/><rect x="213" y="193" width="27" height="28" fill="#00E6FF"/>
+ <text x="215" y="211" font-size="14" font-weight="800" fill="#0B1435">AI</text>
+ <text x="394" y="225" fill="#FFFFFF" font-family="Arial" font-size="92" font-weight="800" font-style="italic">DeviceCare <tspan fill="#F5C24B">KI</tspan></text>
+ <text x="398" y="278" fill="#B8C3D3" font-size="31" font-family="Arial">Geräteschutz mit intelligenter Evidenz</text>
+ <rect x="30" y="435" width="1140" height="280" rx="24" fill="#091531" stroke="#00E6FF" stroke-width="2"/>
+ <text x="48" y="480" fill="#F5C24B" font-family="Arial" font-size="29" font-weight="700">7 verbindliche Markenfarben</text>
+ <rect x="48" y="515" width="115" height="100" rx="12" fill="#0B1435" stroke="#B8C3D3" stroke-width="2"/><text x="48" y="645" fill="#FFFFFF" font-size="21">Navy</text><text x="48" y="674" fill="#B8C3D3" font-size="17">#0B1435</text><rect x="193" y="515" width="115" height="100" rx="12" fill="#F5C24B" stroke="#B8C3D3" stroke-width="2"/><text x="193" y="645" fill="#FFFFFF" font-size="21">Gold</text><text x="193" y="674" fill="#B8C3D3" font-size="17">#F5C24B</text><rect x="338" y="515" width="115" height="100" rx="12" fill="#00E6FF" stroke="#B8C3D3" stroke-width="2"/><text x="338" y="645" fill="#FFFFFF" font-size="21">Cyan</text><text x="338" y="674" fill="#B8C3D3" font-size="17">#00E6FF</text><rect x="483" y="515" width="115" height="100" rx="12" fill="#FF3B4D" stroke="#B8C3D3" stroke-width="2"/><text x="483" y="645" fill="#FFFFFF" font-size="21">Red</text><text x="483" y="674" fill="#B8C3D3" font-size="17">#FF3B4D</text><rect x="628" y="515" width="115" height="100" rx="12" fill="#8A3DFF" stroke="#B8C3D3" stroke-width="2"/><text x="628" y="645" fill="#FFFFFF" font-size="21">Violet</text><text x="628" y="674" fill="#B8C3D3" font-size="17">#8A3DFF</text><rect x="773" y="515" width="115" height="100" rx="12" fill="#B8C3D3" stroke="#B8C3D3" stroke-width="2"/><text x="773" y="645" fill="#FFFFFF" font-size="21">Silver</text><text x="773" y="674" fill="#B8C3D3" font-size="17">#B8C3D3</text><rect x="918" y="515" width="115" height="100" rx="12" fill="#FFFFFF" stroke="#B8C3D3" stroke-width="2"/><text x="918" y="645" fill="#FFFFFF" font-size="21">White</text><text x="918" y="674" fill="#B8C3D3" font-size="17">#FFFFFF</text>
+ <rect x="30" y="741" width="550" height="130" rx="22" fill="#122245" stroke="#8A3DFF"/>
+ <rect x="603" y="741" width="567" height="130" rx="22" fill="#122245" stroke="#8A3DFF"/>
+ <text x="55" y="787" fill="#F5C24B" font-size="27" font-family="Arial">Typografie</text>
+ <text x="55" y="829" fill="#FFFFFF" font-size="21" font-family="Arial">Space Grotesk · UI, lesbar · klare Hierarchie</text>
+ <text x="629" y="787" fill="#F5C24B" font-size="27" font-family="Arial">Motivik</text>
+ <text x="629" y="829" fill="#FFFFFF" font-size="21" font-family="Arial">Orbit · Schild · AI-Chip · Sternfeld · HUD</text>
+</svg>

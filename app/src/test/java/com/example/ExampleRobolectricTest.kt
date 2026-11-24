@@ -45,7 +45,7 @@ class ExampleRobolectricTest {
   fun `read string from context`() {
     val context = ApplicationProvider.getApplicationContext<Context>()
     val appName = context.getString(R.string.app_name)
-    assertEquals("AI-DeviceCare", appName)
+    assertEquals("DeviceCare KI", appName)
   }
 
   @Test
@@ -75,6 +75,7 @@ class ExampleRobolectricTest {
   @Test
   fun `mainActivity starts and navigates across all tabs without crashing`() {
     composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("devicecare_brand_logo").assertExists()
     composeTestRule.onNodeWithTag("hero_inspection_card").assertExists()
 
     composeTestRule.onNodeWithTag("inspection_start_button").performClick()
@@ -118,7 +119,7 @@ class ExampleRobolectricTest {
   @Test
   fun `ai advisor opens from inspection hero renders controls and navigates back`() {
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag("open_ai_advisor_button").performClick()
+    composeTestRule.onNodeWithTag("open_ai_advisor_button").performScrollTo().performClick()
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithTag("ai_advisor_screen").assertExists()
@@ -137,7 +138,7 @@ class ExampleRobolectricTest {
   @Test
   fun `cloud sync screen opens from inspection hero shows google sign in gate and navigates back`() {
     composeTestRule.waitForIdle()
-    composeTestRule.onNodeWithTag("open_cloud_sync_button").performClick()
+    composeTestRule.onNodeWithTag("open_cloud_sync_button").performScrollTo().performClick()
     composeTestRule.waitForIdle()
 
     composeTestRule.onNodeWithTag("cloud_sync_screen").assertExists()

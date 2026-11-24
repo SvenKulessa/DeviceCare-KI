@@ -14,6 +14,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  rethink-audit:
+    name: Rethink read-only audit — synthetic positive/negative tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout without persistent credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify Python runtime, compile and run synthetic tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 --version
+          python3 -m py_compile tools/rethink_audit/rethink_audit.py tools/rethink_audit/test_rethink_audit.py
+          python3 -m unittest discover -s tools/rethink_audit -p 'test_*.py' -v
+
   verify:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
@@ -32,6 +49,16 @@ jobs:
           scanners: vuln,secret,misconfig,license
           severity: HIGH,CRITICAL
           exit-code: '1'
+
+      - name: Verify Drive-governance policy and negative tests (offline, no API access)
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --version
+          node --check tools/drive-governance.mjs
+          node --check web/control-center/iam.mjs
+          node --check web/control-center/view.mjs
+          node --test tools/drive-governance.test.mjs web/control-center/control-center.test.mjs
 
       - name: Set up JDK 21 (Robolectric SDK 36)
         uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
@@ -52,6 +79,70 @@ jobs:
           test -x "$SDK_MANAGER"
           "$SDK_MANAGER" --install "platforms;android-37.2" "build-tools;36.0.0"
           gradle --version
+
+      # Trivy's earlier filesystem scan does not resolve Gradle artifacts.
+      # Produce a CI-only lockfile from the resolved runtime graph; do not mutate project lock policy.
+      - name: Materialize Gradle runtime dependencies for vulnerability coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/devicecare-locks.init.gradle" <<'GRADLE'
+          gradle.beforeProject { project ->
+            if (project.path == ':app') {
+              project.dependencyLocking { lockAllConfigurations() }
+            }
+          }
+          GRADLE
+          gradle --no-daemon --init-script "$RUNNER_TEMP/devicecare-locks.init.gradle" \
+            :app:dependencies --configuration debugRuntimeClasspath --write-locks > /dev/null
+          test -s app/gradle.lockfile
+          grep -Eq '^[^#[:space:]][^=]*:[^=]*:[^=]*=' app/gradle.lockfile || {
+            echo '::error::Gradle runtime lockfile has no resolved packages'
+            exit 1
+          }
+
+      - name: Trivy resolved Gradle vulnerability and license gate
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          version: v0.74.0
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,license
+          severity: HIGH,CRITICAL
+          format: json
+          output: devicecare-trivy-resolved.json
+          exit-code: '1'
+
+      - name: Summarize resolved-package scan without disclosing raw findings
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          report=devicecare-trivy-resolved.json
+          if [ ! -s "$report" ]; then
+            echo 'TRIVY_RESOLVED_REPORT=NOT_PROVEN (missing or empty)'
+            exit 0
+          fi
+          jq -e '.Results | type == "array"' "$report" >/dev/null
+          jq -r '[.Results[]? | select((.Target // "") | contains("gradle.lockfile")) | (.Packages // [])[]] | "TRIVY_GRADLE_PACKAGE_COUNT=\(length)"' "$report"
+          jq -r '[.Results[]? | (.Vulnerabilities // [])[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL")] | "TRIVY_HIGH_CRITICAL_FINDINGS=\(length)"' "$report"
+          jq -c '[.Results[]? | (.Vulnerabilities // [])[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL") | {severity:.Severity,id:.VulnerabilityID,package:.PkgName,installed:.InstalledVersion,fixed:(.FixedVersion // "NOT_PROVEN")}] | .[:20][]' "$report"
+
+      - name: Reject empty Trivy Gradle package coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s devicecare-trivy-resolved.json
+          count="$(jq -r '[.Results[]? | select((.Target // "") | contains("gradle.lockfile")) | (.Packages // [])[]] | length' devicecare-trivy-resolved.json)"
+          if [ "${count:-0}" -lt 1 ]; then
+            echo '::error::Trivy did not report any resolved Gradle packages; vulnerability result is NOT_PROVEN'
+            exit 1
+          fi
+          printf 'TRIVY_RESOLVED_GRADLE_PACKAGES=%s\n' "$count"
+      - name: Remove temporary Trivy report (also on failure)
+        if: always()
+        shell: bash
+        run: rm -f -- devicecare-trivy-resolved.json
 
       - name: Prepare internal debug signing key (never a release key)
         shell: bash

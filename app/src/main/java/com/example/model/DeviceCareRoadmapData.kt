@@ -88,7 +88,7 @@ object DeviceCareRoadmapData {
         blockingRelease = true,
         sourceDoc = "docs/M1-COLLECTORS.md · docs/M1-ANDROID15-QA.md",
         description =
-          "Erster Consumer-Vertikalschnitt: Liest auf expliziten Nutzerklick den Akkustand und OS-sichtbare Paket-Aggregate (`devicecare-observation/1`). Reale Android-15-Gerätetests, TalkBack-Abnahme und Play Billing stehen noch aus.",
+          "Erster Consumer-Vertikalschnitt: Liest auf expliziten Nutzerklick den Akkustand und OS-sichtbare Paket-Aggregate (`devicecare-observation/1`). Reale Android-15-Gerätetests, Screenreader-Abnahme und Play Billing stehen noch aus.",
         acceptanceCriteria =
           listOf(
             "Manueller Start auf Dispatchers.IO; kein Scan beim App-Öffnen",
@@ -242,14 +242,14 @@ object DeviceCareRoadmapData {
         id = "rem-p1-emu",
         code = "P1-2",
         title = "Android 15 (API 35) Emulator Compose & Accessibility QA",
-        subtitle = "Semantik-Tests, TalkBack-Überschriften & expliziter Scan-Button",
+        subtitle = "Semantik-Tests, Screenreader-Überschriften & expliziter Scan-Button",
         category = PlanCategory.REMEDIATION,
         status = GovernanceStatus.IN_PROGRESS,
         owner = "PRODUCT / MOBILE",
         blockingRelease = true,
         sourceDoc = "docs/M1-ANDROID15-QA.md · M1InspectionAccessibilityTest.kt",
         description =
-          "Übt auf API-35-Emulator das manuelle Starten der Prüfung, Überschriften-Semantik, 48dp-Touch-Ziele und Live-Regionen. Ersetzt keine manuelle TalkBack-Prüfung auf echter Hardware.",
+          "Übt auf API-35-Emulator das manuelle Starten der Prüfung, Überschriften-Semantik, 48dp-Touch-Ziele und Live-Regionen. Ersetzt keine manuelle Screenreader-Prüfung auf echter Hardware.",
         acceptanceCriteria =
           listOf(
             "Kein automatischer Scan beim Öffnen der App",
@@ -295,6 +295,56 @@ object DeviceCareRoadmapData {
             "Vollständige Play Data Safety & Berechtigungs-Deklaration durch Owner",
           ),
         nonNegotiableBoundary = "Kein stilles Hochladen oder Veröffentlichen in Google Play.",
+      ),
+
+      RoadmapTask(
+        id = "rem-p1-drive-loop",
+        code = "P1-DRIVE",
+        title = "Drive Deep-Scan: täglicher SOLO2-Loop & Owner-Stop",
+        subtitle = "Content-Audit, Security-Gates, 45-Tage-Archivierung & WAIT_OWNER",
+        category = PlanCategory.REMEDIATION,
+        status = GovernanceStatus.NOT_PROVEN,
+        owner = "PLATFORM / TRUST / QUALITY",
+        blockingRelease = false,
+        sourceDoc = "docs/DEVICECARE_DRIVE_GOVERNANCE.md · GitHub Issue #21",
+        description =
+          "Geplant ist ein separater, authentifizierter Web-Backend-Job für den projektisolierten Drive-Scan einmal täglich. Der Loop pausiert bei unklaren Dateien, fehlenden Sicherheitsnachweisen oder Owner-Entscheidungen dauerhaft mit WAIT_OWNER/STOPPED. Aktuell ist nur ein synthetisch testbarer PLAN_ONLY-Vertrag vorhanden: kein produktiver Web-Job, kein Drive-Zugriff und keine Archivierung.",
+        acceptanceCriteria =
+          listOf(
+            "Verifizierter eigener DeviceCare-KI-Drive-Root und strikte Zielordner-Allowlist; keine Fremdprojekt-Dateien",
+            "Ein serverseitiger Lauf pro Berliner Kalendertag mit Lease, Checkpoint und Wiederanlauf-Schutz",
+            "Inhalt, Malware/Secrets/Privatsphaere/Lizenzen, Referenzen und Integritaet vor jeder Rename-/Move-Aktion unabhaengig geprueft",
+            "Nur nach belegter Inaktivitaet >45 Tage: komprimierte, hashgebundene Sicherung mit Restore-Test; Originale bleiben erhalten",
+            "WAIT_OWNER/STOPPED bei Unklarheit, explizites Owner-Resume mit Revalidierung; Audit-Readback nach jeder Aenderung",
+          ),
+        nonNegotiableBoundary =
+          "Kein automatischer Cloud-Scan, Drive-Schreibzugriff oder Cross-Projekt-Zugriff ohne verifizierte Freigaben und Infrastruktur.",
+        canMarkVerifiedLocally = false,
+      ),
+
+      RoadmapTask(
+        id = "rem-p1-control-center",
+        code = "P1-CENTER",
+        title = "Privates DeviceCare Control Center & Enterprise-IAM",
+        subtitle = "Rollenbasierte Profil-, Drive-, B2B- und Enterprise-Reiter",
+        category = PlanCategory.REMEDIATION,
+        status = GovernanceStatus.NOT_PROVEN,
+        owner = "PLATFORM / PRODUCT / TRUST",
+        blockingRelease = false,
+        sourceDoc = "web/control-center/README.md · GitHub Issue #23",
+        description =
+          "Serverseitiges, mandantenisoliertes DeviceCare-KI Control Center fuer eigene Geraete, Drive-Hygiene, SOLO2-Entscheidungen und spaetere Enterprise-Fleet-Ansichten. Ein sicherer SSR/RBAC-Referenzcode existiert; reale IAM-Provider, backendseitige Laufzeit, persistente Datenbank und Cloud-Deployment bleiben NOT_PROVEN.",
+        acceptanceCriteria =
+          listOf(
+            "Authentifizierte private Profil-Ansicht; keine fremden Geraete oder persoenliche Dateien",
+            "Eigenstaendiger Drive-Reiter mit PLAN_ONLY, WAIT_OWNER, STOP, Sicherheitsaudits und Genehmigungsstatus",
+            "B2B/Enterprise-Dashboards nur innerhalb autorisierter Mandanten mit serverseitig durchgesetzten Rollen",
+            "Tenant-Trennung, MFA-Step-up, Plan-Hash, unveraenderliches Audit und negative Zugriffs-Tests",
+            "Barrierefreie Mobile-/Tablet-/Desktop-UI, gepruefte Web-Deploy-Identitaet und Rollback",
+          ),
+        nonNegotiableBoundary =
+          "UI-Reiter ersetzen keine serverseitige IAM-Pruefung; kein Live-Web-Backend, keine Drive-Aktion und keine fremden Projektressourcen ohne gesonderte Freigaben.",
+        canMarkVerifiedLocally = false,
       ),
 
       // --- 8 Physische Android 15 QA Tests (M1-ANDROID15-QA.md) ---
@@ -358,21 +408,22 @@ object DeviceCareRoadmapData {
       RoadmapTask(
         id = "qa-4-a11y",
         code = "QA-04",
-        title = "Android 15 TalkBack, 200% Schrift & 320dp Layout",
+        title = "Android 15 Screenreader, 200% Schrift & 320dp Layout",
         subtitle = "Vollständige manuelle Barrierefreiheits- und Umbruch-Prüfung",
         category = PlanCategory.ANDROID15_QA,
         status = GovernanceStatus.NOT_PROVEN,
         owner = "OWNER QA",
         blockingRelease = true,
-        sourceDoc = "docs/M1-ANDROID15-QA.md §4",
+        sourceDoc = "docs/SCREENREADER-QA.md §QA-04",
         description =
-          "Aktiviere TalkBack manuell und prüfe Überschriften-Navigation, Fokusreihenfolge, Live-Regionen, 200% Schrift-/Anzeigegröße, Querformat, Hell/Dunkel und 320dp Breite.",
+          "Aktiviere einen Android-Screenreader manuell (Name/Version dokumentieren) und prüfe Überschriften-Navigation, sichtbare Fokusreihenfolge, Scan-Ergebnisse, 200% Schrift-/Anzeigegröße, Querformat, Hell/Dunkel und 320dp Breite. Stumme Aufnahmen sind für sichtbare Gerätefunktionen zulässig; hörbare Ansagen bleiben ohne gesonderten Beleg NOT_PROVEN.",
         acceptanceCriteria =
           listOf(
             "Kein Text-Clipping bei 200% Schriftgröße",
-            "Saubere TalkBack-Ansage bei Scan-Ergebnis und Einstellungs-Fehlern",
+            "Stumme Screenreader-Aufnahmen sind für sichtbare Navigation, Fokus und Ergebniswechsel als Geräte-Evidence zulässig",
           ),
-        nonNegotiableBoundary = "Ohne eigene AccessibilityService-Berechtigung testen.",
+        nonNegotiableBoundary = "Ohne eigene AccessibilityService-Berechtigung testen; hörbare Ansagen ohne Ton oder gesondertes Protokoll bleiben NOT_PROVEN.",
+        canMarkVerifiedLocally = false,
       ),
       RoadmapTask(
         id = "qa-5-process-death",

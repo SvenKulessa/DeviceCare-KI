@@ -13,6 +13,9 @@ import java.util.TimeZone
 /** On-demand local evidence; not a malware verdict or independent Google/OEM update lookup. */
 const val SYSTEM_UPDATE_EVIDENCE_VERSION = "devicecare-system-update/1"
 
+/** Provenance of an observation, not a cryptographic device attestation. */
+enum class SystemSnapshotOrigin { NOT_PROVEN, LOCAL_SYSTEM_API }
+
 data class SystemSecuritySnapshot(
   val collectedAtMillis: Long,
   val androidRelease: String,
@@ -22,6 +25,7 @@ data class SystemSecuritySnapshot(
   val playStoreVersion: String?,
   val webViewVersion: String?,
   val webViewProvider: String?,
+  val origin: SystemSnapshotOrigin = SystemSnapshotOrigin.NOT_PROVEN,
 ) {
   val contractVersion: String = SYSTEM_UPDATE_EVIDENCE_VERSION
 }
@@ -72,6 +76,7 @@ class AndroidSystemSecurityReader(
       playStoreVersion = packageVersion("com.android.vending"),
       webViewVersion = bounded(webView?.versionName),
       webViewProvider = webView?.packageName?.takeIf { it.matches(Regex("[A-Za-z0-9_.]{1,128}")) },
+      origin = SystemSnapshotOrigin.LOCAL_SYSTEM_API,
     )
   }
 
@@ -87,10 +92,15 @@ class AndroidSystemSecurityReader(
 }
 
 fun presentSystemSecurity(snapshot: SystemSecuritySnapshot): List<String> {
+  // A caller-provided/synthetic snapshot is not evidence that this device was read.
+  val localReadback = snapshot.origin == SystemSnapshotOrigin.LOCAL_SYSTEM_API &&
+    snapshot.collectedAtMillis >= 0L
   val utc = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ROOT).apply {
     timeZone = TimeZone.getTimeZone("UTC")
   }.format(Date(snapshot.collectedAtMillis))
-  val patchAssessment = when (PatchAgePolicy.classify(snapshot.securityPatch, snapshot.collectedAtMillis)) {
+  val patchAssessment = if (!localReadback) {
+    "NOT_PROVEN (kein bestätigter lokaler Readback)"
+  } else when (PatchAgePolicy.classify(snapshot.securityPatch, snapshot.collectedAtMillis)) {
     PatchAgeSignal.REVIEW_RECOMMENDED ->
       "Prüfung empfohlen (mindestens 60 Tage alt laut Geräteuhr; keine CVE-Aussage)"
     PatchAgeSignal.NO_AGE_WARNING ->
@@ -98,12 +108,14 @@ fun presentSystemSecurity(snapshot: SystemSecuritySnapshot): List<String> {
     PatchAgeSignal.NOT_PROVEN ->
       "NOT_PROVEN (Datum oder Geräteuhr nicht plausibel)"
   }
-  fun installed(value: String?) = if (value == null) "NOT_PROVEN (nicht auslesbar)"
+  fun installed(value: String?) = if (!localReadback) "NOT_PROVEN (kein bestätigter lokaler Readback)"
+    else if (value == null) "NOT_PROVEN (nicht auslesbar)"
     else "$value [VERIFIED: lokal installiert; neueste Release nicht geprüft]"
   return listOf(
     "Evidence: ${snapshot.contractVersion} · UTC $utc",
-    "Android: ${snapshot.androidRelease} (API ${snapshot.apiLevel}) [VERIFIED: System-API]",
-    "Sicherheitspatch: ${snapshot.securityPatch ?: "nicht verfügbar"} — $patchAssessment",
+    "Herkunft: ${if (localReadback) "LOKAL_SYSTEM_API (kein externes Attest)" else "NOT_PROVEN (Snapshot nicht an Gerät gebunden)"}",
+    "Android: ${if (localReadback) "${snapshot.androidRelease} (API ${snapshot.apiLevel}) [VERIFIED: System-API]" else "NOT_PROVEN (kein bestätigter lokaler Readback)"}",
+    "Sicherheitspatch: ${if (localReadback) snapshot.securityPatch ?: "nicht verfügbar" else "NOT_PROVEN"} — $patchAssessment",
     "Google Play-Dienste: ${installed(snapshot.playServicesVersion)}",
     "Google Play Store: ${installed(snapshot.playStoreVersion)}",
     "Aktiver Android WebView-Provider: ${installed(snapshot.webViewVersion)}",

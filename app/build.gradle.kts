@@ -8,6 +8,10 @@ plugins {
   alias(libs.plugins.google.services)
 }
 
+val playIntegrityEnabled = providers.gradleProperty("devicecare.playIntegrity")
+  .map { it.toBooleanStrict() }
+  .orElse(false)
+
 android {
   namespace = "com.example"
   compileSdk { version = release(36) { minorApiLevel = 1 } }
@@ -20,6 +24,7 @@ android {
     versionName = "1.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    buildConfigField("boolean", "USE_PLAY_INTEGRITY", "false")
   }
 
   // Do not remove or modify these signingConfigs. They are necessary for building, installing,
@@ -42,6 +47,7 @@ android {
 
   buildTypes {
     release {
+      buildConfigField("boolean", "USE_PLAY_INTEGRITY", playIntegrityEnabled.get().toString())
       isCrunchPngs = false
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -83,6 +89,13 @@ googleServices { missingGoogleServicesStrategy = MissingGoogleServicesStrategy.W
 // Some unused dependencies are commented out below instead of being removed.
 // This makes it easy to add them back in the future if needed.
 dependencies {
+  // Do not add Guava directly to the app. Only constrain the existing transitive runtime use.
+  // CI verifies the final resolved graph and blocks on CVE-2026-102554.
+  constraints {
+    implementation("com.google.guava:guava:33.7.2-android") {
+      because("CVE-2026-102554: exclude vulnerable transitive Guava from Android runtime")
+    }
+  }
   implementation(platform(libs.androidx.compose.bom))
   implementation(platform(libs.firebase.bom))
   // implementation(libs.accompanist.permissions)
@@ -114,6 +127,7 @@ dependencies {
   implementation(libs.androidx.credentials.play.services)
   implementation(libs.googleid)
   implementation(libs.firebase.appcheck.recaptcha)
+  implementation(libs.firebase.appcheck.playintegrity)
   implementation(libs.firebase.appcheck.debug)
   implementation(libs.kotlinx.coroutines.android)
   implementation(libs.kotlinx.coroutines.core)
