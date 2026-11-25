@@ -82,6 +82,7 @@ import com.example.devicecare.ownAppSettings
 import com.example.devicecare.readOwnAppInstallIdentity
 import com.example.ui.DeviceCareUiState
 import com.example.ui.components.MetricRingCard
+import com.example.ui.components.SystemHealthDashboardHub
 import com.example.ui.theme.MonoTokenTextStyle
 import com.example.ui.theme.ThemeMode
 
@@ -98,6 +99,7 @@ fun InspectionScreen(
   onOpenPrivacySummary: () -> Unit,
   onOpenAppPermissions: () -> Unit,
   onOpenRoadmap: () -> Unit,
+  onOpenPrivacyPolicy: () -> Unit = {},
   modifier: Modifier = Modifier,
 ) {
   val context = LocalContext.current
@@ -130,6 +132,7 @@ fun InspectionScreen(
             enterprisePreview = uiState.enterprisePreviewMode,
             themeMode = uiState.preferences.themeMode,
             onCycleThemeMode = onCycleThemeMode,
+            onOpenPrivacyPolicy = onOpenPrivacyPolicy,
           )
         }
       }
@@ -148,6 +151,24 @@ fun InspectionScreen(
             onOpenRoadmap = onOpenRoadmap,
             compact = compact,
           )
+        }
+      }
+
+      if (!uiState.enterprisePreviewMode) {
+        item {
+          Box(modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp)) {
+            SystemHealthDashboardHub(
+              uiState = uiState,
+              isWide = isWide,
+              onStartInspection = onStartInspection,
+              onOpenBatteryMonitor = onOpenBatteryMonitor,
+              onOpenAppPermissions = onOpenAppPermissions,
+              onOpenSystemSecurity = onOpenSystemSecurity,
+              onOpenPrivacySummary = onOpenPrivacySummary,
+              onOpenAiAdvisor = onOpenAiAdvisor,
+              onOpenCloudSync = onOpenCloudSync,
+            )
+          }
         }
       }
 
@@ -325,6 +346,7 @@ private fun InspectionHeader(
   enterprisePreview: Boolean,
   themeMode: ThemeMode,
   onCycleThemeMode: () -> Unit,
+  onOpenPrivacyPolicy: () -> Unit,
 ) {
   Column(
     modifier = Modifier.fillMaxWidth(),
@@ -354,19 +376,34 @@ private fun InspectionHeader(
         )
       }
 
-      FilledTonalIconButton(
-        onClick = onCycleThemeMode,
-        modifier = Modifier.minimumInteractiveComponentSize().testTag("quick_theme_toggle"),
+      Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
       ) {
-        Icon(
-          imageVector =
-            when (themeMode) {
-              ThemeMode.DARK -> Icons.Filled.DarkMode
-              ThemeMode.LIGHT -> Icons.Filled.LightMode
-              ThemeMode.SYSTEM -> Icons.Filled.AutoAwesome
-            },
-          contentDescription = stringResource(R.string.action_toggle_theme),
-        )
+        FilledTonalIconButton(
+          onClick = onOpenPrivacyPolicy,
+          modifier = Modifier.minimumInteractiveComponentSize().testTag("privacy_policy_open"),
+        ) {
+          Icon(
+            imageVector = Icons.Outlined.Lock,
+            contentDescription = "Datenschutz & Transparenz lesen",
+          )
+        }
+
+        FilledTonalIconButton(
+          onClick = onCycleThemeMode,
+          modifier = Modifier.minimumInteractiveComponentSize().testTag("quick_theme_toggle"),
+        ) {
+          Icon(
+            imageVector =
+              when (themeMode) {
+                ThemeMode.DARK -> Icons.Filled.DarkMode
+                ThemeMode.LIGHT -> Icons.Filled.LightMode
+                ThemeMode.SYSTEM -> Icons.Filled.AutoAwesome
+              },
+            contentDescription = stringResource(R.string.action_toggle_theme),
+          )
+        }
       }
     }
 
@@ -1100,7 +1137,7 @@ private fun PermissionsDisclosureCard(
             modifier = Modifier.semantics { heading() },
           )
           Text(
-            text = "Keine sensiblen Android-Berechtigungen in dieser M1-Vorschau angefordert.",
+            text = "Keine gefährlichen Android-Laufzeitberechtigungen angefordert.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
           )
@@ -1109,7 +1146,7 @@ private fun PermissionsDisclosureCard(
 
       Text(
         text =
-          "Cloud, Analytics, VPN, Malware-Scans und kostenpflichtiges Billing sind nicht aktiv. Fortschritt über alle Meilensteine & QA-Gates: $verifiedCount von $totalTasks Punkten.",
+          "Optionale Cloud-Notizen und KI-Beratung sind strikt opt-in; Werbe-SDKs, Tracking, VPN, Malware-Scans und Billing sind nicht enthalten. Fortschritt über alle Meilensteine & QA-Gates: $verifiedCount von $totalTasks Punkten.",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
       )

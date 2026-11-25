@@ -1,5 +1,8 @@
 package com.example.devicecare
 
+import android.app.ActivityManager
+import android.content.Context
+import android.os.StatFs
 import com.example.core.evidence.DeviceObservation
 import com.example.core.evidence.DeviceObservationBatch
 import com.example.core.evidence.ObservationStatus
@@ -7,6 +10,7 @@ import com.example.features.permissions.PermissionScanBudget
 import com.example.features.permissions.PermissionScanProfile
 import com.example.features.permissions.PermissionScanReason
 import com.example.features.permissions.ResourceSignal
+import java.util.Locale
 
 data class ObservationDisplayRow(
   val id: String,
@@ -15,6 +19,93 @@ data class ObservationDisplayRow(
   val status: ObservationStatus,
   val limitationCode: String,
 )
+
+data class SystemHealthSnapshot(
+  val storageTotalBytes: Long? = null,
+  val storageAvailableBytes: Long? = null,
+  val memoryTotalBytes: Long? = null,
+  val memoryAvailableBytes: Long? = null,
+  val lowMemoryReported: Boolean = false,
+) {
+  val storageUsedBytes: Long?
+    get() =
+      if (storageTotalBytes != null && storageAvailableBytes != null && storageTotalBytes > 0L) {
+        (storageTotalBytes - storageAvailableBytes).coerceAtLeast(0L)
+      } else null
+
+  val storageUsedFraction: Float?
+    get() =
+      if (storageTotalBytes != null && storageUsedBytes != null && storageTotalBytes > 0L) {
+        (storageUsedBytes!!.toFloat() / storageTotalBytes.toFloat()).coerceIn(0f, 1f)
+      } else null
+
+  val memoryUsedBytes: Long?
+    get() =
+      if (memoryTotalBytes != null && memoryAvailableBytes != null && memoryTotalBytes > 0L) {
+        (memoryTotalBytes - memoryAvailableBytes).coerceAtLeast(0L)
+      } else null
+
+  val memoryUsedFraction: Float?
+    get() =
+      if (memoryTotalBytes != null && memoryUsedBytes != null && memoryTotalBytes > 0L) {
+        (memoryUsedBytes!!.toFloat() / memoryTotalBytes.toFloat()).coerceIn(0f, 1f)
+      } else null
+
+  fun formattedStorageUsed(): String = formatBytesGiB(storageUsedBytes)
+  fun formattedStorageFree(): String = formatBytesGiB(storageAvailableBytes)
+  fun formattedStorageTotal(): String = formatBytesGiB(storageTotalBytes)
+  fun formattedMemoryUsed(): String = formatBytesGiB(memoryUsedBytes)
+  fun formattedMemoryFree(): String = formatBytesGiB(memoryAvailableBytes)
+  fun formattedMemoryTotal(): String = formatBytesGiB(memoryTotalBytes)
+
+  companion object {
+    fun formatBytesGiB(bytes: Long?): String {
+      if (bytes == null || bytes < 0L) return "Nicht verfügbar"
+      val gib = bytes.toDouble() / (1024.0 * 1024.0 * 1024.0)
+      return String.format(Locale.GERMANY, "%.1f GiB", gib)
+    }
+  }
+}
+
+fun collectSystemHealthSnapshot(context: Context): SystemHealthSnapshot {
+  var memTotal: Long? = null
+  var memAvail: Long? = null
+  var lowMem = false
+  try {
+    val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
+    if (activityManager != null) {
+      val info = ActivityManager.MemoryInfo()
+      activityManager.getMemoryInfo(info)
+      if (info.totalMem > 0L) {
+        memTotal = info.totalMem
+        memAvail = info.availMem.coerceAtLeast(0L)
+      }
+      lowMem = info.lowMemory
+    }
+  } catch (_: RuntimeException) {
+    // Fail closed: keep unavailable fields null.
+  }
+
+  var storeTotal: Long? = null
+  var storeAvail: Long? = null
+  try {
+    val stat = StatFs(context.filesDir.absolutePath)
+    if (stat.totalBytes > 0L) {
+      storeTotal = stat.totalBytes
+      storeAvail = stat.availableBytes.coerceAtLeast(0L)
+    }
+  } catch (_: RuntimeException) {
+    // Fail closed: keep unavailable fields null.
+  }
+
+  return SystemHealthSnapshot(
+    storageTotalBytes = storeTotal,
+    storageAvailableBytes = storeAvail,
+    memoryTotalBytes = memTotal,
+    memoryAvailableBytes = memAvail,
+    lowMemoryReported = lowMem,
+  )
+}
 
 data class InspectionResult(
   val collectedAtMillis: Long = 0L,
@@ -29,6 +120,8 @@ data class InspectionResult(
   val permissionObservations: List<ObservationDisplayRow> = emptyList(),
   val batteryPercent: Int? = null,
   val batteryChargingState: String? = null,
+  val batteryTemperatureDisplay: String? = null,
+  val systemHealthSnapshot: SystemHealthSnapshot? = null,
   val errorMessage: String? = null,
 )
 
@@ -40,6 +133,7 @@ fun presentInspection(
   optionalReadsDeferred: Boolean,
   elapsedMs: Long,
   cpuMs: Long,
+  systemHealthSnapshot: SystemHealthSnapshot? = null,
 ): InspectionResult {
   val batteryPercentObs = battery.observations.firstOrNull { it.id == "battery_percent" }
   val batteryPercent =
@@ -49,6 +143,7 @@ fun presentInspection(
   val chargingObs = battery.observations.firstOrNull { it.id == "battery_charging" }
   val chargingState =
     if (chargingObs?.status == ObservationStatus.OBSERVED) chargingObs.value else null
+  val tempText = battery.observedValueText("battery_temperature")
 
   return InspectionResult(
     collectedAtMillis = maxOf(battery.collectedAtMillis, permissions.collectedAtMillis),
@@ -66,7 +161,7 @@ fun presentInspection(
         "Thermische Belastung" to profile.thermal.describe("keine oder leicht", "moderat"),
         "Akkustand" to battery.observedValueText("battery_percent"),
         "Ladezustand" to battery.observedValueText("battery_charging"),
-        "Akkutemperatur" to battery.observedValueText("battery_temperature"),
+        "Akkutemperatur" to tempText,
         "Android-Akkuzustand (nur Systemstatus)" to
           battery.observedValueText("battery_health_reported"),
         "App-Stichprobe (nur Android-sichtbar)" to
@@ -76,6 +171,8 @@ fun presentInspection(
     permissionObservations = permissions.observations.map { it.toDisplayRow() },
     batteryPercent = batteryPercent,
     batteryChargingState = chargingState,
+    batteryTemperatureDisplay = tempText,
+    systemHealthSnapshot = systemHealthSnapshot,
   )
 }
 

@@ -64,6 +64,7 @@ import com.example.ui.screens.BatteryDashboardScreen
 import com.example.ui.screens.CloudSyncScreen
 import com.example.ui.screens.DesignSystemScreen
 import com.example.ui.screens.InspectionScreen
+import com.example.ui.screens.PrivacyPolicyScreen
 import com.example.ui.screens.PrivacySummaryScreen
 import com.example.ui.screens.SystemSecurityFeatureScreen
 import com.example.ui.screens.RoadmapScreen
@@ -82,6 +83,7 @@ object Routes {
   const val ROUTE_ROADMAP = "roadmap"
   const val ROUTE_ARCHITECTURE = "architecture"
   const val ROUTE_DESIGN = "design"
+  const val ROUTE_PRIVACY_POLICY = "privacy_policy"
   const val ROUTE_TASK_DETAIL = "task_detail/{taskId}"
 
   fun taskDetail(taskId: String): String = "task_detail/$taskId"
@@ -291,6 +293,10 @@ fun DeviceCareApp(
                     },
                     onOpenAppPermissions = { navigateTopLevel(Routes.ROUTE_APPS) },
                     onOpenRoadmap = { navigateTopLevel(Routes.ROUTE_ROADMAP) },
+                    onOpenPrivacyPolicy = {
+                      performHaptic()
+                      navController.navigate(Routes.ROUTE_PRIVACY_POLICY)
+                    },
                   )
                 }
 
@@ -337,6 +343,10 @@ fun DeviceCareApp(
 
                 composable(Routes.ROUTE_SYSTEM_SECURITY) {
                   SystemSecurityFeatureScreen(onBack = { navController.popBackStack() })
+                }
+
+                composable(Routes.ROUTE_PRIVACY_POLICY) {
+                  PrivacyPolicyScreen(onBack = { navController.popBackStack() })
                 }
 
                 composable(Routes.ROUTE_PRIVACY_SUMMARY) {

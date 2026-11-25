@@ -41,4 +41,8 @@
     <string name="export_apps_chooser_title">App-Liste teilen</string>
     <string name="export_apps_cancel">Abbrechen</string>
     <string name="brand_logo_description">DeviceCare KI Markenlogo</string>
+    <string name="hub_telemetry_title">System-Zustand</string>
+    <string name="hub_telemetry_subtitle_idle">Speicher, Akku &amp; Arbeitsspeicher · erst nach manuellem Start</string>
+    <string name="hub_telemetry_subtitle_live">Lokale Momentaufnahme · rein im Arbeitsspeicher</string>
+    <string name="hub_modules_title">Zentrale Werkzeuge</string>
 </resources>

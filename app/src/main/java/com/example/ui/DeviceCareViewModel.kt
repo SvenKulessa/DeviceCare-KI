@@ -25,6 +25,7 @@ import com.example.data.DesignPreferencesRepository
 import com.example.devicecare.AndroidSystemSecurityReader
 import com.example.devicecare.InspectionResult
 import com.example.devicecare.SystemSecuritySnapshot
+import com.example.devicecare.collectSystemHealthSnapshot
 import com.example.devicecare.presentInspection
 import com.example.features.battery.AndroidBatteryCollector
 import com.example.features.battery.AndroidBatteryHealthMonitor
@@ -487,6 +488,7 @@ class DeviceCareViewModel(application: Application) : AndroidViewModel(applicati
                   },
                   checkCancellation = { coroutineContext.ensureActive() },
                 )
+            val systemHealth = collectSystemHealthSnapshot(context)
             val elapsedMs = (SystemClock.elapsedRealtime() - startElapsed).coerceAtLeast(0)
             val cpuMs = (Process.getElapsedCpuTime() - startCpu).coerceAtLeast(0)
             presentInspection(
@@ -497,6 +499,7 @@ class DeviceCareViewModel(application: Application) : AndroidViewModel(applicati
               optionalReadsDeferred = deferred,
               elapsedMs = elapsedMs,
               cpuMs = cpuMs,
+              systemHealthSnapshot = systemHealth,
             )
           }
         inspectionResultFlow.value = result
