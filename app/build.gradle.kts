@@ -92,7 +92,7 @@ dependencies {
   // Do not add Guava directly to the app. Only constrain the existing transitive runtime use.
   // CI verifies the final resolved graph and blocks on CVE-2026-102554.
   constraints {
-    implementation("com.google.guava:guava:33.7.2-android") {
+    implementation("com.google.guava:guava:33.8.0-android") {
       because("CVE-2026-102554: exclude vulnerable transitive Guava from Android runtime")
     }
   }
