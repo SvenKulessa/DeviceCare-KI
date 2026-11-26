@@ -13,7 +13,7 @@ enum class PrivacyPostureTier(
 ) {
   UNASSESSED(
     title = "Prüfung ausstehend",
-    badge = "NOT_PROVEN",
+    badge = "AUSSTEHEND",
     description =
       "Starte den lokalen Komplett-Check, um App-Berechtigungen und System-Metadaten in dieser Sitzung auszuwerten.",
   ),
@@ -33,7 +33,7 @@ enum class PrivacyPostureTier(
     title = "Lokale Basis geprüft",
     badge = "LOKAL OK",
     description =
-      "Keine lokalen Alters- oder Mehrfachsensor-Warnungen gefunden. Externe Dienste (Play Protect, OEM-OTA) bleiben NOT_PROVEN.",
+      "Keine lokalen Alters- oder Mehrfachsensor-Warnungen gefunden. Externe Dienste (Play Protect, Hersteller-Updates) sind lokal nicht bestätigt.",
   ),
 }
 
@@ -380,7 +380,7 @@ object PrivacySummaryAggregator {
           id = "verify_google_components",
           title = "Google Play-Dienste & WebView-Provider kontrollieren",
           detail =
-            "Mindestens eine Google-Systemkomponente war lokal nicht auslesbar (NOT_PROVEN). Prüfe den Status direkt im System- & Google-Check.",
+            "Mindestens eine Google-Systemkomponente war lokal nicht auslesbar. Prüfe den Status direkt im System- & Google-Check.",
           categoryLabel = "SYSTEMKOMPONENTEN",
           priority = AdvicePriority.MEDIUM,
           actionLabel = "System-Check öffnen",
@@ -393,8 +393,8 @@ object PrivacySummaryAggregator {
         id = "manual_play_protect",
         title = "Play Protect & Zertifizierung manuell bestätigen",
         detail =
-          "Android bietet öffentlichen Apps keinen verlässlichen Lesezugriff auf den Play-Protect-Scanstatus (NOT_PROVEN). Starte im Play Store unter Profil → Play Protect einen manuellen Scan.",
-        categoryLabel = "MANUELL · NOT_PROVEN",
+          "Android bietet anderen Apps keinen verlässlichen Lesezugriff auf den Play-Protect-Scanstatus. Starte im Play Store unter Profil → Play Protect einen manuellen Scan.",
+        categoryLabel = "MANUELL · NICHT BESTÄTIGT",
         priority = AdvicePriority.INFO,
         actionLabel = "Play Store öffnen",
         action = PrivacyAdviceAction.OpenPlayProtectInStore,
@@ -406,7 +406,7 @@ object PrivacySummaryAggregator {
           id = "optional_ai_review",
           title = "Optionale KI-Datenschutzberatung nutzen",
           detail =
-            "Für maßgeschneiderte Handlungstipps ohne Paketnamen-Upload kannst du den lokalen Scan optional mit dem Gemini KI-Berater auswerten.",
+            "Für maßgeschneiderte Handlungstipps ohne Paketnamen-Upload kannst du den lokalen Scan optional mit dem KI-Berater auswerten.",
           categoryLabel = "KI-BERATER (OPT-IN)",
           priority = AdvicePriority.INFO,
           actionLabel = "KI-Berater öffnen",

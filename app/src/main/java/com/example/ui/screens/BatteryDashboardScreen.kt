@@ -1,11 +1,16 @@
 package com.example.ui.screens
 
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -35,6 +40,7 @@ import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.BatteryStd
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.Power
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
@@ -43,6 +49,7 @@ import androidx.compose.material.icons.outlined.ElectricBolt
 import androidx.compose.material.icons.outlined.HealthAndSafety
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Memory
+import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -55,6 +62,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -66,6 +74,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -101,13 +110,48 @@ fun BatteryDashboardScreen(
   onRefresh: (Intent?) -> Unit,
   onShowSnackbar: (String) -> Unit,
   modifier: Modifier = Modifier,
+  onToggleLowBatteryAlerts: (Boolean) -> Unit = {},
 ) {
   BackHandler(onBack = onBack)
 
   val context = LocalContext.current
   val lifecycleOwner = LocalLifecycleOwner.current
   val currentOnRefresh by rememberUpdatedState(onRefresh)
+  val currentOnToggleAlerts by rememberUpdatedState(onToggleLowBatteryAlerts)
+  val currentOnShowSnackbar by rememberUpdatedState(onShowSnackbar)
   val compact = uiState.preferences.compactDensity
+
+  val notificationPermissionGranted =
+    Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+      ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
+        PackageManager.PERMISSION_GRANTED
+
+  val requestNotificationPermissionLauncher =
+    rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+      if (granted) {
+        currentOnToggleAlerts(true)
+        currentOnShowSnackbar("Akku-Warnung unter 20 % aktiviert.")
+      } else {
+        currentOnToggleAlerts(false)
+        currentOnShowSnackbar(
+          "Mitteilungsberechtigung verweigert. Warnung bleibt deaktiviert."
+        )
+      }
+    }
+
+  fun handleToggleAlerts(enable: Boolean) {
+    if (!enable) {
+      onToggleLowBatteryAlerts(false)
+      onShowSnackbar("Akku-Warnung unter 20 % deaktiviert.")
+      return
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !notificationPermissionGranted) {
+      requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    } else {
+      onToggleLowBatteryAlerts(true)
+      onShowSnackbar("Akku-Warnung unter 20 % aktiviert.")
+    }
+  }
 
   LaunchedEffect(Unit) { currentOnRefresh(null) }
 
@@ -160,7 +204,7 @@ fun BatteryDashboardScreen(
 
   Scaffold(
     modifier = modifier.fillMaxSize().testTag("battery_dashboard_screen"),
-    containerColor = MaterialTheme.colorScheme.background,
+    containerColor = Color.Transparent,
     topBar = {
       TopAppBar(
         title = {
@@ -172,7 +216,7 @@ fun BatteryDashboardScreen(
               overflow = TextOverflow.Ellipsis,
             )
             Text(
-              text = "BatteryManager Live-Telemetrie",
+              text = "System-Sensoren · Live-Status",
               style = MaterialTheme.typography.labelSmall,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -208,7 +252,7 @@ fun BatteryDashboardScreen(
         },
         colors =
           TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.88f)
           ),
       )
     },
@@ -256,6 +300,19 @@ fun BatteryDashboardScreen(
         item {
           Box(modifier = Modifier.fillMaxWidth().widthIn(max = 880.dp)) {
             RemainingUsageTimeCard(snapshot = snapshot)
+          }
+        }
+
+        // Low-Battery (< 20%) Notification Opt-in Card
+        item {
+          Box(modifier = Modifier.fillMaxWidth().widthIn(max = 880.dp)) {
+            LowBatteryAlertSettingsCard(
+              enabled = uiState.preferences.lowBatteryAlertsEnabled,
+              permissionGranted = notificationPermissionGranted,
+              currentPercent = snapshot.percent,
+              isCharging = snapshot.chargingStatus == ChargingStatus.CHARGING,
+              onToggle = ::handleToggleAlerts,
+            )
           }
         }
 
@@ -833,6 +890,110 @@ private fun BatterySystemShortcutsCard(
           Text("Akkuverbrauch", maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
       }
+    }
+  }
+}
+
+@Composable
+private fun LowBatteryAlertSettingsCard(
+  enabled: Boolean,
+  permissionGranted: Boolean,
+  currentPercent: Int?,
+  isCharging: Boolean,
+  onToggle: (Boolean) -> Unit,
+) {
+  val activeBelowThreshold = enabled && currentPercent != null && currentPercent < 20 && !isCharging
+  Card(
+    modifier = Modifier.fillMaxWidth().testTag("low_battery_alert_card"),
+    shape = MaterialTheme.shapes.large,
+    colors =
+      CardDefaults.cardColors(
+        containerColor =
+          if (activeBelowThreshold) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.65f)
+          else MaterialTheme.colorScheme.surfaceContainerLow
+      ),
+    border =
+      BorderStroke(
+        width = 1.dp,
+        color =
+          when {
+            activeBelowThreshold -> MaterialTheme.colorScheme.error.copy(alpha = 0.6f)
+            enabled -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.55f)
+            else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)
+          },
+      ),
+  ) {
+    Row(
+      modifier = Modifier.fillMaxWidth().padding(16.dp),
+      horizontalArrangement = Arrangement.spacedBy(12.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Surface(
+        shape = CircleShape,
+        color =
+          if (enabled) MaterialTheme.colorScheme.secondaryContainer
+          else MaterialTheme.colorScheme.surfaceContainerHigh,
+      ) {
+        Icon(
+          imageVector =
+            if (enabled) Icons.Filled.NotificationsActive else Icons.Outlined.NotificationsOff,
+          contentDescription = null,
+          tint =
+            if (enabled) MaterialTheme.colorScheme.onSecondaryContainer
+            else MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.padding(10.dp).size(20.dp),
+        )
+      }
+      Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+          text = "Akku-Warnung (< 20 %)",
+          style = MaterialTheme.typography.titleSmall,
+          color = MaterialTheme.colorScheme.onSurface,
+          modifier = Modifier.semantics { heading() },
+        )
+        Text(
+          text =
+            "Benachrichtigt dich lokal, sobald der Akkustand im Akkubetrieb unter 20 % fällt.",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Surface(
+          shape = MaterialTheme.shapes.small,
+          color =
+            when {
+              activeBelowThreshold -> MaterialTheme.colorScheme.error
+              enabled && permissionGranted -> MaterialTheme.colorScheme.secondaryContainer
+              enabled -> MaterialTheme.colorScheme.tertiaryContainer
+              else -> MaterialTheme.colorScheme.surfaceContainerHighest
+            },
+        ) {
+          val statusText =
+            when {
+              activeBelowThreshold -> "AKTIV · UNTER 20 %"
+              enabled && permissionGranted -> "AKTIV · SCHWELLE < 20 %"
+              enabled -> "MITTEILUNGSRECHT FEHLT"
+              else -> "DEAKTIVIERT · OPT-IN"
+            }
+          val statusFg =
+            when {
+              activeBelowThreshold -> MaterialTheme.colorScheme.onError
+              enabled && permissionGranted -> MaterialTheme.colorScheme.onSecondaryContainer
+              enabled -> MaterialTheme.colorScheme.onTertiaryContainer
+              else -> MaterialTheme.colorScheme.onSurfaceVariant
+            }
+          Text(
+            text = statusText,
+            style = MonoTokenTextStyle,
+            color = statusFg,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+          )
+        }
+      }
+      Switch(
+        checked = enabled,
+        onCheckedChange = onToggle,
+        modifier = Modifier.minimumInteractiveComponentSize().testTag("low_battery_alert_switch"),
+      )
     }
   }
 }

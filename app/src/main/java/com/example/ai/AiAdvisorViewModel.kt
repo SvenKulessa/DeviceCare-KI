@@ -67,7 +67,7 @@ class AiAdvisorViewModel internal constructor(
       systemInstruction =
         content {
           text(
-            "Du bist der integrierte KI-Berater von AI-DeviceCare für Android-Smartphones. " +
+            "Du bist der integrierte KI-Berater von DeviceCare KI für Android-Smartphones. " +
               "Beantworte Fragen zu Android-Akku-Telemetrie, Energiespareinstellungen, " +
               "Laufzeitberechtigungen (z. B. Kamera, Standort, Mikrofon) und Gerätesicherheit " +
               "präzise, sachlich und auf Deutsch. Erfinde niemals Messwerte oder Diagnose-Scores."
@@ -95,7 +95,7 @@ class AiAdvisorViewModel internal constructor(
     if (scanResult == null || scanResult.errorMessage != null) {
       _privacyAnalysisState.value =
         PermissionPrivacyAnalysisState.Error(
-          "Bitte zuerst einen lokalen App-Scan durchführen, bevor Gemini analysiert."
+          "Bitte zuerst einen lokalen App-Scan durchführen, bevor die KI-Auswertung startet."
         )
       return
     }
@@ -122,7 +122,7 @@ class AiAdvisorViewModel internal constructor(
         _privacyAnalysisState.value =
           PermissionPrivacyAnalysisState.Error(
             e.localizedMessage?.takeIf { it.isNotBlank() }
-              ?: "Datenschutz-Analyse mit Gemini fehlgeschlagen."
+              ?: "Datenschutz-Analyse fehlgeschlagen."
           )
       }
     }
@@ -159,7 +159,7 @@ class AiAdvisorViewModel internal constructor(
         _postureNextStepsState.value =
           PostureNextStepsState.Error(
             e.localizedMessage?.takeIf { it.isNotBlank() }
-              ?: "Gemini-Auswertung des Gerätestatus fehlgeschlagen."
+              ?: "KI-Auswertung des Gerätestatus fehlgeschlagen."
           )
       }
     }
@@ -258,11 +258,11 @@ class AiAdvisorViewModel internal constructor(
           }
         } else {
           _uiState.update {
-            it.copy(status = AiUiState.Error("Das Gemini-Modell hat eine leere Antwort geliefert."))
+            it.copy(status = AiUiState.Error("Der KI-Berater hat eine leere Antwort geliefert."))
           }
         }
       } catch (e: TimeoutCancellationException) {
-        Log.e(TAG, "Gemini streaming request timed out", e)
+        Log.e(TAG, "AI streaming request timed out", e)
         _uiState.update {
           it.copy(
             status =
@@ -274,13 +274,13 @@ class AiAdvisorViewModel internal constructor(
       } catch (e: CancellationException) {
         throw e
       } catch (e: Exception) {
-        Log.e(TAG, "Firebase AI Logic request failed", e)
+        Log.e(TAG, "AI request failed", e)
         _uiState.update {
           it.copy(
             status =
               AiUiState.Error(
                 e.localizedMessage?.takeIf { msg -> msg.isNotBlank() }
-                  ?: "Gemini-Anfrage fehlgeschlagen."
+                  ?: "Anfrage fehlgeschlagen."
               )
           )
         }

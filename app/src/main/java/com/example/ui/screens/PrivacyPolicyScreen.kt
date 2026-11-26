@@ -33,6 +33,7 @@ import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -50,52 +51,52 @@ private fun privacySections(isGerman: Boolean): List<PrivacySection> =
       PrivacySection(
         "controller",
         "1. Verantwortlicher und Kontakt",
-        "DeviceCare KI (Paket com.aistudio.formwerk.vktmrx). Rechtlicher Herausgeber, ladungsfähige Anschrift und Datenschutzkontakt: [VOR FREIGABE EINTRAGEN]. Dies ist eine interne Vorabfassung, nicht zur öffentlichen Verwendung freigegeben.",
+        "DeviceCare KI. Rechtlicher Herausgeber, ladungsfähige Anschrift und Datenschutzkontakt: [VOR FREIGABE EINTRAGEN]. Dies ist eine Vorabfassung, noch nicht für den öffentlichen Store-Vertrieb freigegeben.",
       ),
       PrivacySection(
         "scope",
         "2. Geltungsbereich",
-        "Diese Erklärung gilt für die native Android-App DeviceCare KI (Paket com.aistudio.formwerk.vktmrx). Sie beschreibt aktuelle lokale Prüfungen sowie optional aktivierbare Cloud-Notizen und KI-Beratungsfunktionen, nicht jedoch künftige Drive- oder Enterprise-Control-Center-Backends (NOT_PROVEN).",
+        "Diese Erklärung gilt für die Android-App DeviceCare KI. Sie beschreibt alle aktuellen lokalen Geräteprüfungen sowie die optional aktivierbaren Cloud-Notizen und die KI-Beratung.",
       ),
       PrivacySection(
         "access",
         "3. Lokaler Datenzugriff und Zweck",
-        "Erst nach manuellem Antippen liest die App Akkuwerte (Ladestand, Status, Temperatur, Spannung, System-Health), grobe Speicher- und Thermiksignale, ein lokales Hardware- und Sensorinventar (einzelne Sensor-Stichproben erst nach separater Bestätigung), Android-sichtbare App- und Berechtigungsmetadaten sowie eigene App-Berechtigungen. Die Paketstichprobe der Schnellprüfung ist je nach Gerätebelastung auf 250, 75 oder 25 sichtbare Apps begrenzt.",
+        "Erst nach deinem aktiven Antippen liest die App Akkuwerte (Ladestand, Status, Temperatur, Spannung, Systemzustand), grobe Speicher- und Wärmesignale, ein lokales Hardware- und Sensorinventar (einzelne Sensortests erst nach weiterer Bestätigung) sowie vom System freigegebene App- und Berechtigungsangaben. Die Schnellprüfung begrenzt große App-Listen je nach Geräteauslastung automatisch.",
       ),
       PrivacySection(
         "security",
         "4. Optionaler System- und Google-Sicherheitscheck",
-        "Eine getrennt manuell gestartete Prüfung liest Android-Version, API-Level, Sicherheitspatchdatum sowie verfügbare Versionsangaben von Google Play-Diensten, Play Store und aktivem WebView-Provider. Für GMS und Play Store bestehen enge Package-Queries. Es erfolgen keine Live-CVE-Abfrage, kein Malware-Scan und kein Nachweis über den tatsächlichen Play-Protect-Status.",
+        "Eine getrennt manuell gestartete Prüfung liest Android-Version, gemeldetes Sicherheitspatchdatum sowie verfügbare Versionsangaben von Google Play-Diensten, Play Store und System-WebView. Es erfolgen keine Online-Schwachstellenabfrage, kein versteckter Malware-Scan und keine Aussage über den tatsächlichen Play-Protect-Status.",
       ),
       PrivacySection(
         "storage",
         "5. Speicherung, Export und Löschung",
-        "Diagnose-, Akku-, Hardware- und Berechtigungsergebnisse bleiben flüchtig im Arbeitsspeicher und werden nicht automatisch dauerhaft protokolliert. Design-Einstellungen liegen lokal über DataStore; auf expliziten Exportbefehl (CSV/JSON) geteilte Dateien unterliegen deiner Wahl über Android Share/FileProvider. Android-App-Backups sind über allowBackup=false deaktiviert. Opt-in Cloud Care Notes werden erst nach aktiver Google-Anmeldung in Firebase Firestore unter deinem Nutzerkonto gespeichert und sind dort editier- oder löschbar.",
+        "Diagnose-, Akku-, Hardware- und Berechtigungsergebnisse bleiben ausschließlich flüchtig im Arbeitsspeicher und werden nicht automatisch als Verlauf gespeichert. Darstellungs- und Designwünsche liegen nur lokal auf deinem Gerät; ein Export als Datei (CSV/JSON) erfolgt nur auf deinen ausdrücklichen Wunsch über den Teilen-Dialog. Automatische Cloud-App-Backups sind deaktiviert. Optionale Cloud-Notizen werden erst nach aktiver Google-Anmeldung unter deinem Konto gesichert und können dort jederzeit geändert oder gelöscht werden.",
       ),
       PrivacySection(
         "network",
         "6. Übermittlung, Cloud-Funktionen und KI",
-        "Das App-Manifest deklariert die INTERNET-Berechtigung ausschließlich für explizit gestartete Online-Funktionen: optionale Anmeldung per Google Sign-In (Credential Manager) für Firebase Firestore Cloud Care Notes, optionale KI-Textanalyse über Firebase AI Logic (Gemini API) und optional aktivierbares Firebase App Check (Play Integrity in Release-Konfiguration standardmäßig deaktiviert). Ohne deine aktive Nutzung dieser Screens oder Buttons sendet die lokale Prüfung keine Diagnosedaten ins Netzwerk. Werbe- oder Tracking-SDKs sind nicht integriert.",
+        "Netzwerkzugriffe erfolgen ausschließlich für von dir ausdrücklich gestartete Online-Funktionen: optionale Anmeldung mit deinem Google-Konto für persönliche Cloud-Notizen sowie optionale Text- und Datenschutzberatung über den integrierten KI-Berater. Ohne deine aktive Nutzung dieser Funktionen sendet die lokale Prüfung keinerlei Diagnosedaten ins Internet. Werbe- oder Tracking-Dienste sind nicht enthalten.",
       ),
       PrivacySection(
         "permission",
         "7. Berechtigungen und Sicherheit",
-        "Die App fordert keine gefährlichen Android-Laufzeitberechtigungen wie Kamera, Mikrofon, Standort, Kontakte, VPN oder AccessibilityService und nutzt kein Root oder ADB. Die App-Sichtbarkeit beschränkt sich auf reguläre Launcher-Intents sowie Google Play-Dienste und Play Store; rohe Sensor- oder Paketdetails werden nur bei explizitem Nutzeraufruf lokal verarbeitet. Nicht unterstützte Messwerte werden als unbekannt oder UNSUPPORTED markiert.",
+        "Die App fordert keine sensiblen Zugriffsrechte wie Kamera, Mikrofon, Standort, Kontakte, VPN oder Bedienungshilfen an und nutzt keine System-Sonderrechte. Ab Android 13 wird eine Mitteilungsberechtigung nur dann angefragt, wenn du die lokale Akku-Warnung unter 20 % selbst einschaltest. Nicht verfügbare Messwerte werden klar als unbekannt oder nicht verfügbar gekennzeichnet.",
       ),
       PrivacySection(
         "legal",
         "8. Rechtsgrundlage und Rechte",
-        "Die endgültige DSGVO-Rechtsgrundlagen- und Drittlandtransferprüfung (insbesondere für optionale Google/Firebase-Dienste) ist vor Veröffentlichung durch den Verantwortlichen abzuschließen. Betroffene haben gesetzliche Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung und Beschwerde bei einer Datenschutzaufsicht. Für freiwillige Supportkontakte gelten noch gesondert festzulegende Aufbewahrungs- und Löschregeln.",
+        "Die abschließende rechtliche Einordnung (einschließlich optional genutzter Cloud- und KI-Dienste) erfolgt vor einer öffentlichen Freigabe durch den Herausgeber. Betroffene haben gesetzliche Rechte auf Auskunft, Berichtigung, Löschung, Einschränkung sowie Beschwerde bei einer Datenschutzaufsicht.",
       ),
       PrivacySection(
         "support",
         "9. Supportanfragen und Aufbewahrung",
-        "Support- und Kontaktinformationen, die Nutzer außerhalb der App übermitteln, sind nicht Teil der lokalen App-Diagnose. Verantwortliche Stelle, Kontaktweg, Zwecke, Empfänger und Löschfristen für Supportvorgänge müssen vor einer externen Play-Freigabe verbindlich ergänzt werden.",
+        "Kontaktdaten oder Hinweise, die außerhalb der App an den Support gesendet werden, sind nicht Bestandteil der lokalen Geräteprüfung. Verantwortliche Stelle, Kontaktweg und Löschfristen für Supportvorgänge werden vor einer öffentlichen Freigabe ergänzt.",
       ),
       PrivacySection(
         "updates",
         "10. Änderungen dieser Erklärung",
-        "Fassung: 24.11.2026 – interner Entwurf. Bei Änderungen am Funktionsumfang, an SDKs, Datenflüssen oder Speicherfristen sind diese Erklärung, die In-App-Ansicht und die Play-Data-Safety-Angaben gemeinsam zu aktualisieren. Eine öffentlich zugängliche HTTPS-Datenschutz-URL ist vor einem Play-Upload nachzuweisen.",
+        "Fassung: 24.11.2026 – Vorabfassung. Bei Änderungen am Funktionsumfang, an Datenflüssen oder Speicherfristen werden diese Erklärung und die In-App-Ansicht gemeinsam aktualisiert. Vor einer öffentlichen Veröffentlichung wird eine frei erreichbare HTTPS-Datenschutzseite bereitgestellt.",
       ),
     )
   } else {
@@ -103,52 +104,52 @@ private fun privacySections(isGerman: Boolean): List<PrivacySection> =
       PrivacySection(
         "controller",
         "1. Controller and contact",
-        "DeviceCare KI (package com.aistudio.formwerk.vktmrx). Legal publisher, postal address and privacy contact: [TO BE COMPLETED BEFORE RELEASE]. This is an internal draft and is not approved for public use.",
+        "DeviceCare KI. Legal publisher, postal address and privacy contact: [TO BE COMPLETED BEFORE RELEASE]. This is a draft notice not yet approved for public store distribution.",
       ),
       PrivacySection(
         "scope",
         "2. Scope",
-        "This notice covers the native Android app DeviceCare KI (package com.aistudio.formwerk.vktmrx). It covers current on-device checks as well as optional cloud notes and AI advisor features, and excludes future Drive or enterprise control-center backends (NOT_PROVEN).",
+        "This notice covers the Android app DeviceCare KI. It describes all current on-device checks as well as the optional Cloud Notes and AI Advisor features.",
       ),
       PrivacySection(
         "access",
         "3. On-device access and purpose",
-        "Only after explicit user action does the app read battery metrics (level, status, temperature, voltage, health), coarse memory and thermal signals, an on-device hardware and sensor inventory (individual sensor samples only on separate confirmation), Android-visible app and permission metadata, and DeviceCare KI's own permissions. Quick inspection sampling is capped at 250, 75, or 25 visible apps based on device load.",
+        "Only after explicit user action does the app read battery metrics (level, status, temperature, voltage, health), coarse memory and thermal signals, an on-device hardware and sensor inventory (individual sensor samples only after separate confirmation), and system-visible app and permission details. Quick inspection caps large app lists automatically based on device load.",
       ),
       PrivacySection(
         "security",
         "4. Optional system and Google security check",
-        "A separate user-initiated check reads Android version, API level, reported security patch date, and available version details for Google Play services, Play Store, and the active WebView provider. Visibility queries are strictly scoped to GMS and Play Store. No live CVE lookup, malware scan, or Play Protect verification is performed.",
+        "A separate user-initiated check reads the Android version, reported security patch date, and available version details for Google Play services, Play Store, and the active WebView component. No live vulnerability lookup, hidden malware scan, or Play Protect verification is performed.",
       ),
       PrivacySection(
         "storage",
         "5. Retention, export and deletion",
-        "Diagnostic, battery, hardware, and permission results remain transient in memory and are not automatically persisted as history. Design preferences use local DataStore; optional CSV/JSON exports occur only on explicit user action via Android Share/FileProvider. Android cloud backup is disabled via allowBackup=false. Opt-in Cloud Care Notes are saved in Firebase Firestore under your Google account only after sign-in and can be edited or deleted there.",
+        "Diagnostic, battery, hardware, and permission results remain transient in memory and are not automatically saved as history. Display preferences stay locally on your device; optional CSV/JSON file exports run only on explicit request via the system share sheet. Automatic cloud app backups are disabled. Optional Cloud Notes are stored under your Google account only after sign-in and can be edited or deleted there at any time.",
       ),
       PrivacySection(
         "network",
         "6. Transfers, cloud features and AI",
-        "The app manifest declares the INTERNET permission solely for user-initiated online features: optional Google Sign-In (Credential Manager) for Firebase Firestore Cloud Care Notes, optional AI analysis via Firebase AI Logic (Gemini API), and optional Firebase App Check (Play Integrity disabled by default). Without explicitly using those screens or buttons, local inspection sends no diagnostic data over the network. No advertising or tracking SDKs are bundled.",
+        "Network access is used solely for online features you explicitly start: optional Google Sign-In for personal Cloud Notes and optional text/privacy guidance in the integrated AI Advisor. Without actively using those features, local inspection sends no diagnostic data over the internet. No advertising or tracking services are included.",
       ),
       PrivacySection(
         "permission",
         "7. Permissions and security",
-        "The app requests no dangerous runtime permissions such as camera, microphone, location, contacts, VPN, or AccessibilityService, and never uses root or ADB. Package visibility is limited to standard launcher intents plus Google Play services and Play Store; sensor or package details are processed locally only on explicit action. Unsupported readings are marked unknown or UNSUPPORTED.",
+        "The app never requests sensitive permissions such as camera, microphone, location, contacts, VPN, or accessibility services, and never uses privileged system overrides. On Android 13+, notification permission is requested only if you explicitly enable local low-battery (< 20%) alerts. Unavailable readings are clearly marked as unknown or unavailable.",
       ),
       PrivacySection(
         "legal",
         "8. Legal basis and rights",
-        "Final GDPR legal basis and cross-border transfer assessment (including optional Google/Firebase services) must be completed by the controller before public release. Data subjects have statutory rights of access, rectification, erasure, restriction, and complaint to a supervisory authority. Retention and deletion rules for voluntary support correspondence must be documented separately before release.",
+        "Final GDPR legal basis and transfer assessments (including optional cloud and AI services) will be completed by the publisher prior to public release. Data subjects have statutory rights of access, rectification, erasure, restriction, and complaint to a supervisory authority.",
       ),
       PrivacySection(
         "support",
         "9. Support correspondence",
-        "Support details users send voluntarily outside the app are not part of on-device diagnostics. Before public Play release, the responsible entity, contact channel, purposes, recipients, and retention period for support requests must be confirmed.",
+        "Support details sent voluntarily outside the app are not part of on-device diagnostics. Before public release, the responsible entity, contact channel, and retention period for support requests will be confirmed.",
       ),
       PrivacySection(
         "updates",
         "10. Changes to this policy",
-        "Version: 24 November 2026 – internal draft. Changes to shipped features, SDKs, data flows, or retention require updating this notice, the in-app view, and Play Data safety declarations together. A public HTTPS privacy policy URL must be verified before any Play upload.",
+        "Version: 24 November 2026 – draft notice. Changes to features, data flows, or retention require updating this notice and the in-app view together. A publicly accessible HTTPS privacy page will be provided before public distribution.",
       ),
     )
   }
@@ -165,6 +166,7 @@ fun PrivacyPolicyScreen(
 
   Scaffold(
     modifier = modifier.fillMaxSize().testTag("privacy_policy_screen"),
+    containerColor = Color.Transparent,
     topBar = {
       TopAppBar(
         title = {
@@ -186,7 +188,7 @@ fun PrivacyPolicyScreen(
         },
         colors =
           TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.88f),
             titleContentColor = MaterialTheme.colorScheme.onSurface,
           ),
       )
@@ -220,8 +222,8 @@ fun PrivacyPolicyScreen(
           )
           Text(
             text =
-              if (german) "Interner M1-Entwurf · keine Play-Freigabe · vor Scan jederzeit lesbar"
-              else "Internal M1 draft · not approved for Play release · readable prior to any scan",
+              if (german) "Vorabfassung · nicht zur öffentlichen Verbreitung freigegeben · vor jedem Scan einsehbar"
+              else "Draft notice · not approved for public release · readable prior to any scan",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onTertiaryContainer,
           )

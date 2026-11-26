@@ -44,9 +44,9 @@ enum class BatteryHealthCondition(
 }
 
 enum class RemainingTimeSource(val label: String) {
-  OS_CHARGE_TIME_REMAINING("Android BatteryManager.computeChargeTimeRemaining()"),
-  FUEL_GAUGE_CURRENT_DIV("BatteryManager Fuel-Gauge (CHARGE_COUNTER ÷ Stromstärke)"),
-  UNAVAILABLE("Nicht verfügbar (vom System/OEM nicht gemeldet)"),
+  OS_CHARGE_TIME_REMAINING("System-Schätzung für Restladezeit"),
+  FUEL_GAUGE_CURRENT_DIV("Sensor-Hochrechnung (Restladung ÷ Stromstärke)"),
+  UNAVAILABLE("Nicht verfügbar (vom System/Hersteller nicht gemeldet)"),
 }
 
 data class RemainingTimeEstimate(
@@ -221,7 +221,7 @@ object BatteryHealthEvaluator {
           isChargingEstimate = true,
           source = RemainingTimeSource.OS_CHARGE_TIME_REMAINING,
           limitationNote =
-            "Restladezeit direkt von Android BatteryManager.computeChargeTimeRemaining() gemeldet.",
+            "Restladezeit direkt vom Android-System gemeldet.",
         )
       } else {
         RemainingTimeEstimate(
@@ -230,7 +230,7 @@ object BatteryHealthEvaluator {
           isChargingEstimate = true,
           source = RemainingTimeSource.UNAVAILABLE,
           limitationNote =
-            "computeChargeTimeRemaining() liefert auf diesem Gerät/Ladegerät aktuell keinen Wert.",
+            "Das Gerät oder Ladegerät meldet aktuell keine verbleibende Ladezeit.",
         )
       }
     }
@@ -260,7 +260,7 @@ object BatteryHealthEvaluator {
       isChargingEstimate = false,
       source = RemainingTimeSource.UNAVAILABLE,
       limitationNote =
-        "Hardware-Fuel-Gauge (CHARGE_COUNTER / Stromaufnahme) vom System nicht verfügbar; keine Schätzung erfunden.",
+        "Hardware-Ladungssensorik vom System nicht verfügbar; keine Schätzung erfunden.",
     )
   }
 
@@ -338,7 +338,7 @@ class AndroidBatteryHealthMonitor(
     } catch (_: SecurityException) {
       BatteryDashboardSnapshot(
         observedAtMillis = now,
-        errorMessage = "Zugriff auf BatteryManager vom System verweigert.",
+        errorMessage = "Zugriff auf Akkusensorik vom System verweigert.",
       )
     } catch (_: RuntimeException) {
       BatteryDashboardSnapshot(

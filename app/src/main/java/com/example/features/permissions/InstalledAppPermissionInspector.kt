@@ -6,6 +6,9 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.PermissionInfo
 import android.os.Build
+import com.example.security.firewall.AppProtectionAnalyzer
+import com.example.security.firewall.AppSecurityPosture
+import com.example.security.firewall.FirewallAction
 
 enum class SensitivityCategory(
   val label: String,
@@ -27,11 +30,19 @@ enum class SensitivityCategory(
 enum class AppPermissionFilter(val label: String) {
   ALL("Alle"),
   SENSITIVE_ONLY("Sensibel"),
+  MANIPULATION_RISK("Prüfhinweis"),
+  FIREWALL_BLOCK("Firewall: Sperren"),
   CAMERA("Kamera"),
   LOCATION("Standort"),
   MICROPHONE("Mikrofon"),
   PHONE_SMS("Telefon/SMS"),
   CONTACTS("Kontakte"),
+}
+
+enum class AppOriginFilter(val label: String) {
+  ALL("Alle Apps"),
+  USER_ONLY("Nur Nutzer-Apps"),
+  SYSTEM_ONLY("Nur System-Apps"),
 }
 
 enum class AppSectionCategory(
@@ -83,6 +94,12 @@ data class CategorizedAppGroup(
   val apps: List<InstalledAppPermissionInfo>,
 )
 
+enum class PrivacyConcernLevel(val label: String) {
+  HIGH("Hoher Hinweis"),
+  ELEVATED("Erhöht"),
+  NONE("Unauffällig"),
+}
+
 data class GrantedDangerousPermission(
   val fullName: String,
   val shortName: String,
@@ -97,12 +114,19 @@ data class InstalledAppPermissionInfo(
   val totalRequestedPermissions: Int,
   val grantedDangerousPermissions: List<GrantedDangerousPermission>,
   val versionName: String? = null,
+  val securityPosture: AppSecurityPosture? = null,
 ) {
   val hasHighSensitivityAccess: Boolean
     get() = grantedDangerousPermissions.any { it.category.isHighSensitivity }
 
   val categories: Set<SensitivityCategory>
     get() = grantedDangerousPermissions.mapTo(mutableSetOf()) { it.category }
+
+  val hasBackgroundLocation: Boolean
+    get() =
+      grantedDangerousPermissions.any {
+        it.fullName == "android.permission.ACCESS_BACKGROUND_LOCATION"
+      }
 
   val criticalSensorTags: List<String>
     get() =
@@ -114,6 +138,61 @@ data class InstalledAppPermissionInfo(
 
   val isCriticalSensorApp: Boolean
     get() = criticalSensorTags.isNotEmpty()
+
+  val privacyConcernReasons: List<String>
+    get() =
+      buildList {
+        if (hasBackgroundLocation) {
+          add("Dauerhafter Standortzugriff im Hintergrund (ACCESS_BACKGROUND_LOCATION)")
+        }
+        val hasCamera = SensitivityCategory.CAMERA in categories
+        val hasLocation = SensitivityCategory.LOCATION in categories
+        val hasMic = SensitivityCategory.MICROPHONE in categories
+        if (hasCamera && hasLocation && hasMic) {
+          add("Kombinierter Vollzugriff auf Kamera, Standort und Mikrofon")
+        } else {
+          if (hasCamera && hasLocation) {
+            add("Kombinierter Zugriff auf Kamera und Gerätestandort")
+          }
+          if (hasCamera && hasMic) {
+            add("Kombinierter Zugriff auf Kamera und Mikrofon")
+          }
+          if (hasLocation && hasMic) {
+            add("Kombinierter Zugriff auf Standort und Mikrofon")
+          }
+        }
+        if (hasCamera && !hasLocation && !hasMic) {
+          add("Kamera-Berechtigung aktiv gewährt")
+        }
+        if (hasLocation && !hasBackgroundLocation && !hasCamera && !hasMic) {
+          add("Standort-Berechtigung aktiv gewährt")
+        }
+        if (hasMic && !hasCamera && !hasLocation) {
+          add("Mikrofon- / Audioaufnahme-Berechtigung aktiv gewährt")
+        }
+        if (SensitivityCategory.PHONE_SMS in categories) {
+          add("Zugriff auf Telefonstatus, Anrufprotokolle oder SMS")
+        }
+        if (SensitivityCategory.CONTACTS in categories) {
+          add("Zugriff auf gespeicherte Kontakte")
+        }
+        if (isEmpty() && grantedDangerousPermissions.size >= 3) {
+          add("${grantedDangerousPermissions.size} gefährliche Laufzeitrechte aktiv")
+        }
+      }
+
+  val privacyConcernLevel: PrivacyConcernLevel
+    get() =
+      when {
+        hasBackgroundLocation ||
+          criticalSensorTags.size >= 2 ||
+          (SensitivityCategory.PHONE_SMS in categories &&
+            (SensitivityCategory.LOCATION in categories ||
+              SensitivityCategory.CONTACTS in categories)) -> PrivacyConcernLevel.HIGH
+        hasHighSensitivityAccess || grantedDangerousPermissions.size >= 3 ->
+          PrivacyConcernLevel.ELEVATED
+        else -> PrivacyConcernLevel.NONE
+      }
 
   val primarySectionCategory: AppSectionCategory
     get() =
@@ -142,6 +221,12 @@ data class InstalledAppsScanResult(
   val appsWithCriticalSensorsCount: Int
     get() = apps.count { it.isCriticalSensorApp }
 
+  val appsWithPrivacyConcernsCount: Int
+    get() = apps.count { it.privacyConcernLevel != PrivacyConcernLevel.NONE }
+
+  val highPrivacyConcernCount: Int
+    get() = apps.count { it.privacyConcernLevel == PrivacyConcernLevel.HIGH }
+
   val cameraAccessCount: Int
     get() = apps.count { SensitivityCategory.CAMERA in it.categories }
 
@@ -150,6 +235,25 @@ data class InstalledAppsScanResult(
 
   val microphoneAccessCount: Int
     get() = apps.count { SensitivityCategory.MICROPHONE in it.categories }
+
+  val systemAppsCount: Int
+    get() = apps.count { it.isSystemApp }
+
+  val userAppsCount: Int
+    get() = apps.count { !it.isSystemApp }
+
+  val manipulationWarningCount: Int
+    get() = apps.count { it.securityPosture?.hasManipulationWarnings == true }
+
+  val firewallBlockRecommendedCount: Int
+    get() =
+      apps.count {
+        val action = it.securityPosture?.firewallRecommendation?.action
+        action == FirewallAction.BLOCK_ALL || action == FirewallAction.ALLOW_FOREGROUND_ONLY
+      }
+
+  val recentUpdatesCount: Int
+    get() = apps.count { it.securityPosture?.recentlyUpdatedWithin7Days == true }
 }
 
 object PermissionSensitivityClassifier {
@@ -327,17 +431,23 @@ class InstalledAppPermissionInspector(
               },
             )
 
-          InstalledAppPermissionInfo(
-            packageName = pkg.packageName,
-            appName = label,
-            isSystemApp = isSystem,
-            totalRequestedPermissions = pkg.requestedPermissions?.size ?: 0,
-            grantedDangerousPermissions = grantedDangerous,
-            versionName = pkg.versionName?.takeIf { it.isNotBlank() },
-          )
+          val baseInfo =
+            InstalledAppPermissionInfo(
+              packageName = pkg.packageName,
+              appName = label,
+              isSystemApp = isSystem,
+              totalRequestedPermissions = pkg.requestedPermissions?.size ?: 0,
+              grantedDangerousPermissions = grantedDangerous,
+              versionName = pkg.versionName?.takeIf { it.isNotBlank() },
+            )
+          val posture = AppProtectionAnalyzer.inspectPackagePosture(pm, pkg, baseInfo, now)
+          baseInfo.copy(securityPosture = posture)
         }
           .sortedWith(
-            compareByDescending<InstalledAppPermissionInfo> { it.hasHighSensitivityAccess }
+            compareByDescending<InstalledAppPermissionInfo> {
+                it.securityPosture?.hasManipulationWarnings == true
+              }
+              .thenByDescending { it.hasHighSensitivityAccess }
               .thenByDescending { it.grantedDangerousPermissions.size }
               .thenBy { it.appName.lowercase() }
           )

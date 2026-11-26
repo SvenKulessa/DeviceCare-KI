@@ -9,8 +9,8 @@ enum class ThemePalette(
   val displayName: String,
   val tagline: String,
 ) {
-  UNIVERSE("DeviceCare KI · Universe", "Freigegeben · Space Navy, Plasma Cyan, Starlight Gold"),
-  TERRAKOTTA("Terrakotta Studio", "Legacy · Warmes Ziegelrot & Sand"),
+  UNIVERSE("DeviceCare KI · Universe", "Standard · Space Navy, Plasma Cyan, Starlight Gold"),
+  TERRAKOTTA("Terrakotta Studio", "Warmes Ziegelrot & Sand"),
   KOBALT("Kobalt Editorial", "Präzises Blau & Alabaster"),
   SALBEI("Salbei & Stein", "Ruhiges Grün & Kreide"),
   OBSIDIAN("Obsidian Gold", "Edles Gold & Graphit"),

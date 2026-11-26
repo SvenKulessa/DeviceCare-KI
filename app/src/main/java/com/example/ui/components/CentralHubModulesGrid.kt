@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.CloudQueue
+import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Card
@@ -31,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -57,14 +59,20 @@ internal fun CentralHubModulesGrid(
   onOpenPrivacySummary: () -> Unit,
   onOpenAiAdvisor: () -> Unit,
   onOpenCloudSync: () -> Unit,
+  onOpenRethinkGuide: () -> Unit = {},
 ) {
   val items =
     listOf(
       HubModuleItem(
         title = "App-Rechte",
         statusText =
-          uiState.installedAppsScanResult?.let { "${it.visiblePackageCount} Apps" }
-            ?: "Bereit · lokal",
+          uiState.installedAppsScanResult?.let {
+            if (it.appsWithPrivacyConcernsCount > 0) {
+              "${it.appsWithPrivacyConcernsCount} Hinweise · ${it.visiblePackageCount} Apps"
+            } else {
+              "${it.visiblePackageCount} Apps"
+            }
+          } ?: "Bereit · lokal",
         icon = Icons.Filled.Apps,
         tag = "hub_module_apps",
         onClick = onOpenAppPermissions,
@@ -79,7 +87,10 @@ internal fun CentralHubModulesGrid(
       ),
       HubModuleItem(
         title = "Akku-Monitor",
-        statusText = uiState.batterySnapshot?.percent?.let { "$it% live" } ?: "Detail-Telemetrie",
+        statusText =
+          uiState.batterySnapshot?.percent?.let { pct ->
+            if (uiState.preferences.lowBatteryAlertsEnabled) "$pct% · Warnung <20%" else "$pct% live"
+          } ?: if (uiState.preferences.lowBatteryAlertsEnabled) "Warnung <20% aktiv" else "Detail-Telemetrie",
         icon = Icons.Filled.BatteryChargingFull,
         tag = "hub_module_battery",
         onClick = onOpenBatteryMonitor,
@@ -93,7 +104,7 @@ internal fun CentralHubModulesGrid(
       ),
       HubModuleItem(
         title = "KI-Berater",
-        statusText = "Opt-in · Gemini",
+        statusText = "Opt-in · KI-Hilfe",
         icon = Icons.Filled.AutoAwesome,
         tag = "hub_module_ai",
         onClick = onOpenAiAdvisor,
@@ -104,6 +115,13 @@ internal fun CentralHubModulesGrid(
         icon = Icons.Filled.CloudQueue,
         tag = "hub_module_cloud",
         onClick = onOpenCloudSync,
+      ),
+      HubModuleItem(
+        title = "Rethink-Schutz",
+        statusText = "Firewall · DNS · Netz",
+        icon = Icons.Filled.Dns,
+        tag = "hub_module_rethink",
+        onClick = onOpenRethinkGuide,
       ),
     )
 
@@ -132,6 +150,9 @@ internal fun CentralHubModulesGrid(
                 .testTag(item.tag)
                 .clip(MaterialTheme.shapes.medium)
                 .minimumInteractiveComponentSize()
+                .semantics(mergeDescendants = true) {
+                  contentDescription = "${item.title}: ${item.statusText}. Antippen zum Öffnen."
+                }
                 .clickable(onClick = item.onClick),
             shape = MaterialTheme.shapes.medium,
             colors =

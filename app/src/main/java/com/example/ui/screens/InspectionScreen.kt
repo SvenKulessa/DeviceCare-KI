@@ -33,7 +33,9 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.CloudQueue
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
@@ -81,8 +83,11 @@ import com.example.devicecare.openDeviceSettings
 import com.example.devicecare.ownAppSettings
 import com.example.devicecare.readOwnAppInstallIdentity
 import com.example.ui.DeviceCareUiState
+import com.example.ui.components.InteractiveDiagnosticMatrixCard
+import com.example.ui.components.InteractiveUniverseOrbitCard
 import com.example.ui.components.MetricRingCard
 import com.example.ui.components.SystemHealthDashboardHub
+import com.example.ui.components.UniverseDiagnosticCategory
 import com.example.ui.theme.MonoTokenTextStyle
 import com.example.ui.theme.ThemeMode
 
@@ -98,9 +103,16 @@ fun InspectionScreen(
   onOpenSystemSecurity: () -> Unit,
   onOpenPrivacySummary: () -> Unit,
   onOpenAppPermissions: () -> Unit,
-  onOpenRoadmap: () -> Unit,
+  @Suppress("UNUSED_PARAMETER") onOpenRoadmap: () -> Unit = {},
   onOpenPrivacyPolicy: () -> Unit = {},
   modifier: Modifier = Modifier,
+  onOpenRethinkGuide: () -> Unit = {},
+  onOpenQuickNav: () -> Unit = {},
+  selectedUniverseCategory: UniverseDiagnosticCategory = UniverseDiagnosticCategory.SYSTEM_HEALTH,
+  planetPulseNonce: Int = 0,
+  onSelectUniverseCategory: (UniverseDiagnosticCategory) -> Unit = {},
+  onPlanetTap: () -> Unit = {},
+  onTriggerUniverseAction: (UniverseDiagnosticCategory) -> Unit = {},
 ) {
   val context = LocalContext.current
   val compact = uiState.preferences.compactDensity
@@ -129,10 +141,10 @@ fun InspectionScreen(
       item {
         Column(modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp)) {
           InspectionHeader(
-            enterprisePreview = uiState.enterprisePreviewMode,
             themeMode = uiState.preferences.themeMode,
             onCycleThemeMode = onCycleThemeMode,
             onOpenPrivacyPolicy = onOpenPrivacyPolicy,
+            onOpenQuickNav = onOpenQuickNav,
           )
         }
       }
@@ -140,7 +152,6 @@ fun InspectionScreen(
       item {
         Box(modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp)) {
           HeroInspectionCard(
-            enterprisePreview = uiState.enterprisePreviewMode,
             inspectionInProgress = uiState.inspectionInProgress,
             onStartInspection = onStartInspection,
             onOpenBatteryMonitor = onOpenBatteryMonitor,
@@ -148,132 +159,101 @@ fun InspectionScreen(
             onOpenCloudSync = onOpenCloudSync,
             onOpenSystemSecurity = onOpenSystemSecurity,
             onOpenPrivacySummary = onOpenPrivacySummary,
-            onOpenRoadmap = onOpenRoadmap,
+            onOpenRethinkGuide = onOpenRethinkGuide,
             compact = compact,
           )
         }
       }
 
-      if (!uiState.enterprisePreviewMode) {
-        item {
-          Box(modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp)) {
-            SystemHealthDashboardHub(
-              uiState = uiState,
-              isWide = isWide,
-              onStartInspection = onStartInspection,
-              onOpenBatteryMonitor = onOpenBatteryMonitor,
-              onOpenAppPermissions = onOpenAppPermissions,
-              onOpenSystemSecurity = onOpenSystemSecurity,
-              onOpenPrivacySummary = onOpenPrivacySummary,
-              onOpenAiAdvisor = onOpenAiAdvisor,
-              onOpenCloudSync = onOpenCloudSync,
-            )
-          }
-        }
-      }
-
-      if (uiState.enterprisePreviewMode) {
-        item {
-          Box(modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp)) {
-            EnterprisePrototypeNoticeCard(onOpenRoadmap = onOpenRoadmap)
-          }
-        }
-      } else {
-        // Live inspection results (only after explicit button tap; never persisted)
-        item {
-          Box(
-            modifier =
-              Modifier.fillMaxWidth()
-                .widthIn(max = 860.dp)
-                .testTag("inspection_results")
-                .semantics { liveRegion = LiveRegionMode.Polite }
-          ) {
-            val result = uiState.inspectionResult
-            AnimatedVisibility(
-              visible = result != null,
-              enter = fadeIn(),
-              exit = fadeOut(),
-            ) {
-              if (result != null) {
-                InspectionResultSection(
-                  result = result,
-                  isStale = uiState.isInspectionStale,
-                  isWide = isWide,
-                  settingsMessage = uiState.settingsMessage,
-                  onOpenBatterySettings = {
-                    launchSettings(
-                      Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS),
-                      "Suche in den Einstellungen nach Energiesparmodus.",
-                    )
-                  },
-                  onOpenAppSettings = {
-                    launchSettings(
-                      ownAppSettings(context.packageName),
-                      "Öffne in den Einstellungen Apps → DeviceCare KI.",
-                    )
-                  },
-                )
-              }
-            }
-          }
-        }
-      }
-
-      // Quality & Scoring Pipeline Truth Cards (always visible per DeviceCareHome contract)
       item {
         Box(modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp)) {
-          if (isWide) {
-            Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-              PipelineTruthCard(
-                title = "Quality pipeline",
-                badge = "NOT_PROVEN",
-                body =
-                  "Build-Evidenz ist NOT_PROVEN, bis dieses Artefakt exakt an einen geprüften Commit-SHA gebunden wurde.",
-                modifier = Modifier.weight(1f),
-              )
-              PipelineTruthCard(
-                title = "Device scoring pipeline",
-                badge = "NOT_ASSESSABLE",
-                body =
-                  "Risk score: NOT_ASSESSABLE — kein kalibriertes Modell und keine vollständige Geräte-Evidenz in M1.",
-                modifier = Modifier.weight(1f),
-              )
-            }
-          } else {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-              PipelineTruthCard(
-                title = "Quality pipeline",
-                badge = "NOT_PROVEN",
-                body =
-                  "Build-Evidenz ist NOT_PROVEN, bis dieses Artefakt exakt an einen geprüften Commit-SHA gebunden wurde.",
-              )
-              PipelineTruthCard(
-                title = "Device scoring pipeline",
-                badge = "NOT_ASSESSABLE",
-                body =
-                  "Risk score: NOT_ASSESSABLE — kein kalibriertes Modell und keine vollständige Geräte-Evidenz in M1.",
-              )
-            }
-          }
-        }
-      }
-
-      // Android Permissions Disclosure & Roadmap Summary
-      item {
-        Box(modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp)) {
-          PermissionsDisclosureCard(
-            verifiedCount = uiState.verifiedCount,
-            totalTasks = uiState.allTasks.size,
-            onOpenAppPermissions = onOpenAppPermissions,
-            onOpenRoadmap = onOpenRoadmap,
+          InteractiveUniverseOrbitCard(
+            uiState = uiState,
+            selectedCategory = selectedUniverseCategory,
+            planetPulseNonce = planetPulseNonce,
+            onSelectCategory = onSelectUniverseCategory,
+            onPlanetTap = onPlanetTap,
+            onTriggerCategoryAction = onTriggerUniverseAction,
           )
         }
       }
 
-      // Explicit, local QA readback only. No background scan or persistence.
+      item {
+        Box(modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp)) {
+          SystemHealthDashboardHub(
+            uiState = uiState,
+            isWide = isWide,
+            onStartInspection = onStartInspection,
+            onOpenBatteryMonitor = onOpenBatteryMonitor,
+            onOpenAppPermissions = onOpenAppPermissions,
+            onOpenSystemSecurity = onOpenSystemSecurity,
+            onOpenPrivacySummary = onOpenPrivacySummary,
+            onOpenAiAdvisor = onOpenAiAdvisor,
+            onOpenCloudSync = onOpenCloudSync,
+            onOpenRethinkGuide = onOpenRethinkGuide,
+          )
+        }
+      }
+
+      item {
+        Box(modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp)) {
+          InteractiveDiagnosticMatrixCard(
+            uiState = uiState,
+            selectedCategory = selectedUniverseCategory,
+            onSelectCategory = onSelectUniverseCategory,
+          )
+        }
+      }
+
+      // Live inspection results (only after explicit button tap; never persisted)
+      item {
+        Box(
+          modifier =
+            Modifier.fillMaxWidth()
+              .widthIn(max = 860.dp)
+              .testTag("inspection_results")
+              .semantics { liveRegion = LiveRegionMode.Polite }
+        ) {
+          val result = uiState.inspectionResult
+          AnimatedVisibility(
+            visible = result != null,
+            enter = fadeIn(),
+            exit = fadeOut(),
+          ) {
+            if (result != null) {
+              InspectionResultSection(
+                result = result,
+                isStale = uiState.isInspectionStale,
+                isWide = isWide,
+                settingsMessage = uiState.settingsMessage,
+                onOpenBatterySettings = {
+                  launchSettings(
+                    Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS),
+                    "Suche in den Einstellungen nach Energiesparmodus.",
+                  )
+                },
+                onOpenAppSettings = {
+                  launchSettings(
+                    ownAppSettings(context.packageName),
+                    "Öffne in den Einstellungen Apps → DeviceCare KI.",
+                  )
+                },
+              )
+            }
+          }
+        }
+      }
+
+      item {
+        Box(modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp)) {
+          PermissionsDisclosureCard(
+            onOpenAppPermissions = onOpenAppPermissions,
+            onOpenPrivacySummary = onOpenPrivacySummary,
+          )
+        }
+      }
+
+      // Explicit local identity check on user tap. No background scan or persistence.
       item {
         Box(modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp)) {
           OwnAppInstallIdentityCard()
@@ -292,14 +272,17 @@ private fun OwnAppInstallIdentityCard() {
 
   Card(
     modifier = Modifier.fillMaxWidth().testTag("own_app_identity_card"),
-    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+    colors =
+      CardDefaults.cardColors(
+        containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.90f)
+      ),
   ) {
     Column(
       modifier = Modifier.fillMaxWidth().padding(16.dp),
       verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
       Text(
-        text = "Installierte App-Identität (lokaler QA-Abgleich)",
+        text = "Installierte App-Identität & Signatur",
         style = MaterialTheme.typography.titleMedium,
         modifier = Modifier.semantics { heading() },
       )
@@ -315,8 +298,15 @@ private fun OwnAppInstallIdentityCard() {
           verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
           Text("Paket: ${identity.packageName}")
-          Text("Version: ${identity.versionName ?: "NOT_PROVEN"} (${identity.versionCode ?: "NOT_PROVEN"})")
-          Text("Lokaler Android-PackageManager: ${identity.evidenceStatus}")
+          Text(
+            "Version: ${identity.versionName ?: "Nicht verfügbar"} (${identity.versionCode ?: "—"})"
+          )
+          Text(
+            "Lokaler Status: ${
+              if (identity.signerFingerprintsSha256.isNotEmpty()) "Signatur ausgelesen"
+              else "Signatur nicht verfügbar"
+            }"
+          )
           if (identity.signerFingerprintsSha256.isNotEmpty()) {
             identity.signerFingerprintsSha256.forEachIndexed { index, fingerprint ->
               Text("Signer #${index + 1} · SHA-256")
@@ -326,14 +316,12 @@ private fun OwnAppInstallIdentityCard() {
               )
             }
           } else {
-            Text("Signer-Fingerprint: NOT_PROVEN (${identity.limitationCode ?: "NO_SIGNER"})")
+            Text("Signatur-Fingerabdruck: Nicht verfügbar")
           }
         }
       }
       Text(
-        "Keine APK-Dateihash-Prüfung und keine Update-Freigabe. " +
-          "Signer, Paket und Version extern mit dem zugeordneten CI-Artefakt vergleichen; " +
-          "keine Deinstallation oder Überschreibung ohne Backup-/Rollback-Prüfung.",
+        "Zeigt Version und Prüfsignatur dieser App direkt auf dem Gerät an, damit du Echtheit und Installationsstand transparent kontrollieren kannst.",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
@@ -343,10 +331,10 @@ private fun OwnAppInstallIdentityCard() {
 
 @Composable
 private fun InspectionHeader(
-  enterprisePreview: Boolean,
   themeMode: ThemeMode,
   onCycleThemeMode: () -> Unit,
   onOpenPrivacyPolicy: () -> Unit,
+  onOpenQuickNav: () -> Unit,
 ) {
   Column(
     modifier = Modifier.fillMaxWidth(),
@@ -357,29 +345,32 @@ private fun InspectionHeader(
       horizontalArrangement = Arrangement.SpaceBetween,
       verticalAlignment = Alignment.CenterVertically,
     ) {
-      Surface(
-        shape = MaterialTheme.shapes.medium,
-        color = Color.White,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.65f)),
-        shadowElevation = 1.dp,
-        modifier = Modifier.weight(1f, fill = false).padding(end = 12.dp),
-      ) {
-        Image(
-          painter = painterResource(id = R.drawable.img_devicecare_ki_brand),
-          contentDescription = stringResource(R.string.brand_logo_description),
-          contentScale = ContentScale.Fit,
-          modifier =
-            Modifier.widthIn(max = 210.dp)
-              .heightIn(min = 38.dp, max = 46.dp)
-              .padding(horizontal = 10.dp, vertical = 4.dp)
-              .testTag("devicecare_brand_logo"),
-        )
-      }
+      Image(
+        painter = painterResource(id = R.drawable.img_devicecare_ki_brand),
+        contentDescription = stringResource(R.string.brand_logo_description),
+        contentScale = ContentScale.Fit,
+        modifier =
+          Modifier.weight(1f, fill = false)
+            .padding(end = 12.dp)
+            .widthIn(max = 228.dp)
+            .heightIn(min = 42.dp, max = 56.dp)
+            .testTag("devicecare_brand_logo"),
+      )
 
       Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
+        FilledTonalIconButton(
+          onClick = onOpenQuickNav,
+          modifier = Modifier.minimumInteractiveComponentSize().testTag("quick_nav_menu_button"),
+        ) {
+          Icon(
+            imageVector = Icons.Filled.Menu,
+            contentDescription = "Schnell-Navigation zu allen Bereichen öffnen",
+          )
+        }
+
         FilledTonalIconButton(
           onClick = onOpenPrivacyPolicy,
           modifier = Modifier.minimumInteractiveComponentSize().testTag("privacy_policy_open"),
@@ -424,9 +415,7 @@ private fun InspectionHeader(
             modifier = Modifier.size(14.dp),
           )
           Text(
-            text =
-              if (enterprisePreview) "DeviceCare KI+ · Business Prototyp"
-              else "DeviceCare KI · lokaler Prüfmodus",
+            text = "DeviceCare KI · lokaler Schutzmodus",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
           )
@@ -434,15 +423,13 @@ private fun InspectionHeader(
       }
 
       Text(
-        text = if (enterprisePreview) "DeviceCare KI+" else "DeviceCare KI",
+        text = "DeviceCare KI",
         style = MaterialTheme.typography.headlineLarge,
         color = MaterialTheme.colorScheme.onBackground,
         modifier = Modifier.semantics { heading() },
       )
       Text(
-        text =
-          if (enterprisePreview) "Business prototype — internal only"
-          else "Akku & App-Berechtigungen · Datenschutz zuerst",
+        text = "Akku, Speicher & App-Berechtigungen · Datenschutz zuerst",
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
@@ -453,7 +440,6 @@ private fun InspectionHeader(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun HeroInspectionCard(
-  enterprisePreview: Boolean,
   inspectionInProgress: Boolean,
   onStartInspection: () -> Unit,
   onOpenBatteryMonitor: () -> Unit,
@@ -461,7 +447,7 @@ private fun HeroInspectionCard(
   onOpenCloudSync: () -> Unit,
   onOpenSystemSecurity: () -> Unit,
   onOpenPrivacySummary: () -> Unit,
-  onOpenRoadmap: () -> Unit,
+  onOpenRethinkGuide: () -> Unit,
   compact: Boolean,
 ) {
   Card(
@@ -523,7 +509,7 @@ private fun HeroInspectionCard(
             overflow = TextOverflow.Ellipsis,
           )
           Spacer(modifier = Modifier.height(2.dp))
-          if (!enterprisePreview) {
+          if (true) {
             FlowRow(
               horizontalArrangement = Arrangement.spacedBy(10.dp),
               verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -619,49 +605,24 @@ private fun HeroInspectionCard(
                 Spacer(modifier = Modifier.width(6.dp))
                 Text("Datenschutz-Cockpit")
               }
-            }
-          } else {
-            Button(
-              onClick = onOpenRoadmap,
-              modifier = Modifier.minimumInteractiveComponentSize(),
-            ) {
-              Text("M4 Business-Plan ansehen")
+
+              FilledTonalButton(
+                onClick = onOpenRethinkGuide,
+                modifier =
+                  Modifier.minimumInteractiveComponentSize()
+                    .testTag("open_rethink_guide_button"),
+              ) {
+                Icon(
+                  imageVector = Icons.Filled.Dns,
+                  contentDescription = null,
+                  modifier = Modifier.size(18.dp),
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Rethink Firewall & DNS")
+              }
             }
           }
         }
-      }
-    }
-  }
-}
-
-@Composable
-private fun EnterprisePrototypeNoticeCard(onOpenRoadmap: () -> Unit) {
-  Card(
-    shape = MaterialTheme.shapes.large,
-    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.35f)),
-  ) {
-    Column(
-      modifier = Modifier.fillMaxWidth().padding(18.dp),
-      verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-      Text(
-        text = "AI-DeviceCare+ (Internal Prototype Only)",
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.onErrorContainer,
-        modifier = Modifier.semantics { heading() },
-      )
-      Text(
-        text =
-          "Fleet enrollment and organization features: NOT IMPLEMENTED. Mandantenfähiges Supabase-Backend, RBAC und Fleet-Policies sind für Meilenstein M4 eingeplant.",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onErrorContainer,
-      )
-      FilledTonalButton(
-        onClick = onOpenRoadmap,
-        modifier = Modifier.minimumInteractiveComponentSize(),
-      ) {
-        Text("M4/M5 Anforderungen öffnen")
       }
     }
   }
@@ -737,7 +698,7 @@ private fun InspectionResultSection(
           title = "Akkustand (System)",
           progress = (pct ?: 0) / 100f,
           centerText = if (pct != null) "$pct%" else "N/A",
-          subtitle = result.batteryChargingState ?: "UNSUPPORTED",
+          subtitle = result.batteryChargingState ?: "Nicht verfügbar",
           modifier = Modifier.weight(1f),
         )
         DeviceProfileSummaryCard(
@@ -754,7 +715,7 @@ private fun InspectionResultSection(
           title = "Akku",
           progress = (pct ?: 0) / 100f,
           centerText = if (pct != null) "$pct%" else "N/A",
-          subtitle = result.batteryChargingState ?: "UNSUPPORTED",
+          subtitle = result.batteryChargingState ?: "Nicht verfügbar",
           modifier = Modifier.weight(1f),
         )
         BudgetHighlightCard(result = result, modifier = Modifier.weight(1f))
@@ -778,12 +739,12 @@ private fun InspectionResultSection(
     }
 
     ObservationGroupCard(
-      title = "Akku-Beobachtungen (LOCAL_BATTERY)",
+      title = "Akku-Messwerte",
       rows = result.batteryObservations,
     )
 
     ObservationGroupCard(
-      title = "Berechtigungs-Stichprobe (ANDROID_VISIBLE_APPS)",
+      title = "App-Berechtigungen (Stichprobe)",
       rows = result.permissionObservations,
     )
 
@@ -1048,66 +1009,16 @@ internal fun ObservationGroupCard(
 }
 
 @Composable
-private fun PipelineTruthCard(
-  title: String,
-  badge: String,
-  body: String,
-  modifier: Modifier = Modifier,
-) {
-  Card(
-    modifier = modifier,
-    shape = MaterialTheme.shapes.large,
-    colors =
-      CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)),
-  ) {
-    Column(
-      modifier = Modifier.fillMaxWidth().padding(16.dp),
-      verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Text(
-          text = title,
-          style = MaterialTheme.typography.titleMedium,
-          color = MaterialTheme.colorScheme.onSurface,
-          modifier = Modifier.semantics { heading() },
-        )
-        Surface(
-          shape = MaterialTheme.shapes.small,
-          color = MaterialTheme.colorScheme.tertiaryContainer,
-        ) {
-          Text(
-            text = badge,
-            style = MonoTokenTextStyle,
-            color = MaterialTheme.colorScheme.onTertiaryContainer,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-          )
-        }
-      }
-      Text(
-        text = body,
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-    }
-  }
-}
-
-@Composable
 private fun PermissionsDisclosureCard(
-  verifiedCount: Int,
-  totalTasks: Int,
   onOpenAppPermissions: () -> Unit,
-  onOpenRoadmap: () -> Unit,
+  onOpenPrivacySummary: () -> Unit,
 ) {
   Card(
     shape = MaterialTheme.shapes.large,
     colors =
-      CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+      CardDefaults.cardColors(
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.90f)
+      ),
     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)),
   ) {
     Column(
@@ -1131,13 +1042,13 @@ private fun PermissionsDisclosureCard(
         }
         Column(modifier = Modifier.weight(1f)) {
           Text(
-            text = "Android permissions",
+            text = "Berechtigungen & Datenschutz",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.semantics { heading() },
           )
           Text(
-            text = "Keine gefährlichen Android-Laufzeitberechtigungen angefordert.",
+            text = "Keine gefährlichen Laufzeitberechtigungen im Hintergrund angefordert.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
           )
@@ -1146,7 +1057,7 @@ private fun PermissionsDisclosureCard(
 
       Text(
         text =
-          "Optionale Cloud-Notizen und KI-Beratung sind strikt opt-in; Werbe-SDKs, Tracking, VPN, Malware-Scans und Billing sind nicht enthalten. Fortschritt über alle Meilensteine & QA-Gates: $verifiedCount von $totalTasks Punkten.",
+          "Alle Prüfungen starten erst nach deinem Antippen und bleiben lokal auf deinem Gerät. Cloud-Notizen und KI-Beratung sind rein freiwillig.",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
@@ -1168,7 +1079,7 @@ private fun PermissionsDisclosureCard(
       }
 
       FilledTonalButton(
-        onClick = onOpenRoadmap,
+        onClick = onOpenPrivacySummary,
         modifier = Modifier.fillMaxWidth().minimumInteractiveComponentSize(),
       ) {
         Icon(
@@ -1177,7 +1088,7 @@ private fun PermissionsDisclosureCard(
           modifier = Modifier.size(18.dp),
         )
         Spacer(modifier = Modifier.width(8.dp))
-        Text("Alle Aufgaben, Meilensteine & QA-Pläne ansehen")
+        Text("Zum Datenschutz-Cockpit")
       }
     }
   }

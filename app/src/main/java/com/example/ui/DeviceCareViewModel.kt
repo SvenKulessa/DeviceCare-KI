@@ -32,8 +32,12 @@ import com.example.features.battery.AndroidBatteryHealthMonitor
 import com.example.features.battery.BatteryDashboardSnapshot
 import com.example.features.battery.BatteryTrendPoint
 import com.example.features.battery.BatteryTrendRecorder
+import com.example.features.battery.ChargingStatus
+import com.example.features.battery.LowBatteryAlertEvaluator
+import com.example.features.battery.LowBatteryAlertNotifier
 import com.example.features.permissions.AndroidPermissionCollector
 import com.example.features.permissions.AndroidPermissionScanProfile
+import com.example.features.permissions.AppOriginFilter
 import com.example.features.permissions.AppPermissionFilter
 import com.example.features.permissions.AppSectionCategory
 import com.example.features.permissions.CategorizedAppGroup
@@ -43,6 +47,7 @@ import com.example.features.permissions.InstalledAppsScanResult
 import com.example.features.permissions.PermissionScanBudget
 import com.example.features.permissions.PermissionSensitivityClassifier
 import com.example.features.permissions.SensitivityCategory
+import com.example.security.firewall.FirewallAction
 import com.example.model.CommercialTierPlan
 import com.example.model.DeviceCareRoadmapData
 import com.example.model.GovernanceStatus
@@ -118,10 +123,12 @@ data class DeviceCareUiState(
   val installedAppsScanResult: InstalledAppsScanResult? = null,
   val appSearchQuery: String = "",
   val selectedAppFilter: AppPermissionFilter = AppPermissionFilter.ALL,
+  val selectedOriginFilter: AppOriginFilter = AppOriginFilter.ALL,
   val hideSystemApps: Boolean = false,
   val filteredInstalledApps: List<InstalledAppPermissionInfo> = emptyList(),
   val categorizedAppSections: List<CategorizedAppGroup> = emptyList(),
   val collapsedAppSections: Set<AppSectionCategory> = setOf(AppSectionCategory.STANDARD),
+  val appRethinkRuleOverrides: Map<String, Map<String, Boolean>> = emptyMap(),
   // Live Battery Health Monitor Dashboard (foreground/on-demand, RAM-only)
   val batteryMonitorLoading: Boolean = false,
   val batterySnapshot: BatteryDashboardSnapshot? = null,
@@ -177,12 +184,15 @@ class DeviceCareViewModel(application: Application) : AndroidViewModel(applicati
   private val installedAppsResultFlow = MutableStateFlow<InstalledAppsScanResult?>(null)
   private val appSearchQueryFlow = MutableStateFlow("")
   private val selectedAppFilterFlow = MutableStateFlow(AppPermissionFilter.ALL)
-  private val hideSystemAppsFlow = MutableStateFlow(false)
+  private val selectedOriginFilterFlow = MutableStateFlow(AppOriginFilter.ALL)
   private val collapsedAppSectionsFlow =
     MutableStateFlow(setOf(AppSectionCategory.STANDARD))
+  private val appRethinkRuleOverridesFlow =
+    MutableStateFlow<Map<String, Map<String, Boolean>>>(emptyMap())
   private val batteryMonitorLoadingFlow = MutableStateFlow(false)
   private val batterySnapshotFlow = MutableStateFlow<BatteryDashboardSnapshot?>(null)
   private val batteryTrendHistoryFlow = MutableStateFlow<List<BatteryTrendPoint>>(emptyList())
+  private var lowBatteryAlertedInCycle = false
   private val systemSecurityCheckingFlow = MutableStateFlow(false)
   private val systemSecuritySnapshotFlow = MutableStateFlow<SystemSecuritySnapshot?>(null)
   private val systemSecurityErrorFlow = MutableStateFlow<String?>(null)
@@ -292,18 +302,19 @@ class DeviceCareViewModel(application: Application) : AndroidViewModel(applicati
     val result: InstalledAppsScanResult?,
     val query: String,
     val filter: AppPermissionFilter,
-    val hideSystem: Boolean,
+    val originFilter: AppOriginFilter,
     val collapsedSections: Set<AppSectionCategory>,
+    val rethinkRuleOverrides: Map<String, Map<String, Boolean>>,
   )
 
   private val appFilterSubFlow =
     combine(
       appSearchQueryFlow,
       selectedAppFilterFlow,
-      hideSystemAppsFlow,
+      selectedOriginFilterFlow,
       collapsedAppSectionsFlow,
-    ) { query, filter, hideSystem, collapsedSections ->
-      Triple(query, filter, hideSystem to collapsedSections)
+    ) { query, filter, originFilter, collapsedSections ->
+      Triple(query, filter, originFilter to collapsedSections)
     }
 
   private val appPermissionsTupleFlow =
@@ -311,14 +322,16 @@ class DeviceCareViewModel(application: Application) : AndroidViewModel(applicati
       installedAppsScanningFlow,
       installedAppsResultFlow,
       appFilterSubFlow,
-    ) { scanning, result, (query, filter, flags) ->
+      appRethinkRuleOverridesFlow,
+    ) { scanning, result, (query, filter, flags), ruleOverrides ->
       AppPermissionsBundle(
         scanning = scanning,
         result = result,
         query = query,
         filter = filter,
-        hideSystem = flags.first,
+        originFilter = flags.first,
         collapsedSections = flags.second,
+        rethinkRuleOverrides = ruleOverrides,
       )
     }
 
@@ -396,6 +409,14 @@ class DeviceCareViewModel(application: Application) : AndroidViewModel(applicati
             )
           }
 
+          val filteredApps =
+            filterInstalledApps(
+              apps = appPerms.result?.apps.orEmpty(),
+              query = appPerms.query,
+              filter = appPerms.filter,
+              originFilter = appPerms.originFilter,
+            )
+
         DeviceCareUiState(
           preferences = prefs,
           inspectionInProgress = insp.busy,
@@ -420,29 +441,21 @@ class DeviceCareViewModel(application: Application) : AndroidViewModel(applicati
           installedAppsScanResult = appPerms.result,
           appSearchQuery = appPerms.query,
           selectedAppFilter = appPerms.filter,
-          hideSystemApps = appPerms.hideSystem,
-          filteredInstalledApps =
-            filterInstalledApps(
-              apps = appPerms.result?.apps.orEmpty(),
-              query = appPerms.query,
-              filter = appPerms.filter,
-              hideSystemApps = appPerms.hideSystem,
-            ),
-          categorizedAppSections =
-            PermissionSensitivityClassifier.categorizeApps(
-              filterInstalledApps(
-                apps = appPerms.result?.apps.orEmpty(),
-                query = appPerms.query,
-                filter = appPerms.filter,
-                hideSystemApps = appPerms.hideSystem,
-              )
-            ),
+          selectedOriginFilter = appPerms.originFilter,
+          hideSystemApps = appPerms.originFilter == AppOriginFilter.USER_ONLY,
+          filteredInstalledApps = filteredApps,
+          categorizedAppSections = PermissionSensitivityClassifier.categorizeApps(filteredApps),
           collapsedAppSections =
-            if (appPerms.query.isNotBlank() || appPerms.filter != AppPermissionFilter.ALL) {
+            if (
+              appPerms.query.isNotBlank() ||
+                appPerms.filter != AppPermissionFilter.ALL ||
+                appPerms.originFilter == AppOriginFilter.SYSTEM_ONLY
+            ) {
               emptySet()
             } else {
               appPerms.collapsedSections
             },
+          appRethinkRuleOverrides = appPerms.rethinkRuleOverrides,
           batteryMonitorLoading = insp.batteryLoading,
           batterySnapshot = insp.batterySnapshot,
           batteryTrendHistory = insp.batteryTrendHistory,
@@ -503,6 +516,18 @@ class DeviceCareViewModel(application: Application) : AndroidViewModel(applicati
             )
           }
         inspectionResultFlow.value = result
+        val inspectionChargingStatus =
+          when (result.batteryChargingState) {
+            "CHARGING" -> ChargingStatus.CHARGING
+            "FULL" -> ChargingStatus.FULL
+            "DISCHARGING" -> ChargingStatus.DISCHARGING
+            "NOT_CHARGING" -> ChargingStatus.NOT_CHARGING
+            else -> ChargingStatus.UNKNOWN
+          }
+        evaluateLowBatteryNotification(
+          percent = result.batteryPercent,
+          chargingStatus = inspectionChargingStatus,
+        )
         // Mark snapshot stale after ObservationContract.MAX_AGE_MILLIS (60s)
         launch {
           delay(ObservationContract.MAX_AGE_MILLIS)
@@ -571,6 +596,10 @@ class DeviceCareViewModel(application: Application) : AndroidViewModel(applicati
         batterySnapshotFlow.value = snapshot
         batteryTrendHistoryFlow.value =
           BatteryTrendRecorder.append(batteryTrendHistoryFlow.value, snapshot)
+        evaluateLowBatteryNotification(
+          percent = snapshot.percent,
+          chargingStatus = snapshot.chargingStatus,
+        )
       } catch (cancelled: CancellationException) {
         throw cancelled
       } catch (_: RuntimeException) {
@@ -581,6 +610,58 @@ class DeviceCareViewModel(application: Application) : AndroidViewModel(applicati
           )
       } finally {
         batteryMonitorLoadingFlow.value = false
+      }
+    }
+  }
+
+  private fun evaluateLowBatteryNotification(
+    percent: Int?,
+    chargingStatus: ChargingStatus,
+    forceEnabledOverride: Boolean? = null,
+  ) {
+    val enabled = forceEnabledOverride ?: uiState.value.preferences.lowBatteryAlertsEnabled
+    val decision =
+      LowBatteryAlertEvaluator.evaluate(
+        percent = percent,
+        chargingStatus = chargingStatus,
+        alertsEnabled = enabled,
+        alreadyAlertedBelowThreshold = lowBatteryAlertedInCycle,
+      )
+    lowBatteryAlertedInCycle = decision.nextAlertedState
+    if (decision.shouldNotify && percent != null) {
+      val context = getApplication<Application>().applicationContext
+      LowBatteryAlertNotifier(context).notifyLowBattery(percent)
+    }
+  }
+
+  fun setLowBatteryAlertsEnabled(enabled: Boolean) {
+    viewModelScope.launch { repository.setLowBatteryAlertsEnabled(enabled) }
+    if (!enabled) {
+      lowBatteryAlertedInCycle = false
+      return
+    }
+    val latest = batterySnapshotFlow.value
+    if (latest != null) {
+      evaluateLowBatteryNotification(
+        percent = latest.percent,
+        chargingStatus = latest.chargingStatus,
+        forceEnabledOverride = true,
+      )
+    } else {
+      val inspected = inspectionResultFlow.value
+      if (inspected != null) {
+        val status =
+          when (inspected.batteryChargingState) {
+            "CHARGING" -> ChargingStatus.CHARGING
+            "FULL" -> ChargingStatus.FULL
+            "DISCHARGING" -> ChargingStatus.DISCHARGING
+            else -> ChargingStatus.UNKNOWN
+          }
+        evaluateLowBatteryNotification(
+          percent = inspected.batteryPercent,
+          chargingStatus = status,
+          forceEnabledOverride = true,
+        )
       }
     }
   }
@@ -605,7 +686,7 @@ class DeviceCareViewModel(application: Application) : AndroidViewModel(applicati
         throw cancelled
       } catch (_: RuntimeException) {
         systemSecurityErrorFlow.value =
-          "System- & Google-Abfrage lokal fehlgeschlagen (NOT_PROVEN). Keine Daten gespeichert."
+          "System- & Google-Abfrage lokal fehlgeschlagen. Keine Daten gespeichert."
       } finally {
         systemSecurityCheckingFlow.value = false
       }
@@ -635,7 +716,16 @@ class DeviceCareViewModel(application: Application) : AndroidViewModel(applicati
   }
 
   fun toggleHideSystemApps() {
-    hideSystemAppsFlow.value = !hideSystemAppsFlow.value
+    selectedOriginFilterFlow.value =
+      if (selectedOriginFilterFlow.value == AppOriginFilter.USER_ONLY) {
+        AppOriginFilter.ALL
+      } else {
+        AppOriginFilter.USER_ONLY
+      }
+  }
+
+  fun selectAppOriginFilter(origin: AppOriginFilter) {
+    selectedOriginFilterFlow.value = origin
   }
 
   fun toggleAppSectionCollapsed(category: AppSectionCategory) {
@@ -644,19 +734,44 @@ class DeviceCareViewModel(application: Application) : AndroidViewModel(applicati
       if (category in current) current - category else current + category
   }
 
+  fun setAppRethinkRuleEnabled(packageName: String, ruleId: String, enabled: Boolean) {
+    val current = appRethinkRuleOverridesFlow.value.toMutableMap()
+    val pkgMap = current[packageName].orEmpty().toMutableMap()
+    pkgMap[ruleId] = enabled
+    current[packageName] = pkgMap
+    appRethinkRuleOverridesFlow.value = current
+  }
+
+  fun resetAppRethinkRules(packageName: String) {
+    if (packageName !in appRethinkRuleOverridesFlow.value) return
+    appRethinkRuleOverridesFlow.value = appRethinkRuleOverridesFlow.value - packageName
+  }
+
   private fun filterInstalledApps(
     apps: List<InstalledAppPermissionInfo>,
     query: String,
     filter: AppPermissionFilter,
-    hideSystemApps: Boolean,
+    originFilter: AppOriginFilter,
   ): List<InstalledAppPermissionInfo> {
     val trimmedQuery = query.trim()
     return apps.filter { app ->
-      val matchesSystem = !hideSystemApps || !app.isSystemApp
+      val matchesOrigin =
+        when (originFilter) {
+          AppOriginFilter.ALL -> true
+          AppOriginFilter.USER_ONLY -> !app.isSystemApp
+          AppOriginFilter.SYSTEM_ONLY -> app.isSystemApp
+        }
       val matchesCategory =
         when (filter) {
           AppPermissionFilter.ALL -> true
           AppPermissionFilter.SENSITIVE_ONLY -> app.hasHighSensitivityAccess
+          AppPermissionFilter.MANIPULATION_RISK ->
+            app.securityPosture?.hasManipulationWarnings == true ||
+              app.securityPosture?.recentlyUpdatedWithin7Days == true
+          AppPermissionFilter.FIREWALL_BLOCK -> {
+            val action = app.securityPosture?.firewallRecommendation?.action
+            action == FirewallAction.BLOCK_ALL || action == FirewallAction.ALLOW_FOREGROUND_ONLY
+          }
           AppPermissionFilter.CAMERA -> SensitivityCategory.CAMERA in app.categories
           AppPermissionFilter.LOCATION -> SensitivityCategory.LOCATION in app.categories
           AppPermissionFilter.MICROPHONE -> SensitivityCategory.MICROPHONE in app.categories
@@ -671,8 +786,13 @@ class DeviceCareViewModel(application: Application) : AndroidViewModel(applicati
             perm.shortName.contains(trimmedQuery, ignoreCase = true) ||
               perm.fullName.contains(trimmedQuery, ignoreCase = true) ||
               perm.category.label.contains(trimmedQuery, ignoreCase = true)
-          }
-      matchesSystem && matchesCategory && matchesQuery
+          } ||
+          app.securityPosture?.installerSourceLabel?.contains(trimmedQuery, ignoreCase = true) == true ||
+          app.securityPosture?.firewallRecommendation?.action?.title?.contains(trimmedQuery, ignoreCase = true) == true ||
+          app.securityPosture?.tamperSignals?.any {
+            it.label.contains(trimmedQuery, ignoreCase = true)
+          } == true
+      matchesOrigin && matchesCategory && matchesQuery
     }
   }
 

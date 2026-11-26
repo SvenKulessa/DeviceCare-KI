@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">DeviceCare KI</string>
-    <string name="nav_inspection">Prüfung</string>
+    <string name="nav_inspection">Start</string>
     <string name="nav_apps">Apps</string>
-    <string name="nav_roadmap">Aufgaben</string>
-    <string name="nav_architecture">Architektur</string>
+    <string name="nav_network">Netzwerk</string>
+    <string name="nav_cockpit">Cockpit</string>
     <string name="nav_design">Design</string>
     <string name="action_back">Zurück</string>
     <string name="action_clear_search">Suche leeren</string>
@@ -12,13 +12,13 @@
     <string name="action_start_inspection">Lokale Prüfung starten</string>
     <string name="action_running_inspection">Prüfung läuft</string>
     <string name="action_scan_app_permissions">Apps &amp; Rechte scannen</string>
-    <string name="hero_badge">DEVICECARE KI · UNIVERSE · LOKAL</string>
-    <string name="hero_title">Geräteschutz mit intelligenter Evidenz</string>
-    <string name="hero_subtitle">Manuell gestartete Akku-, App-Rechte- und Systemprüfungen. Lokale Evidence statt erfundener Risiko-Scores.</string>
-    <string name="empty_search_title">Keine Aufgaben oder Pläne gefunden</string>
-    <string name="empty_search_subtitle">Passe deinen Suchbegriff oder den aktiven Status-/Kategorie-Filter an.</string>
+    <string name="hero_badge">DEVICECARE KI · SCHUTZ &amp; ÜBERSICHT</string>
+    <string name="hero_title">Geräteschutz mit klarer Diagnose</string>
+    <string name="hero_subtitle">Manuell gestartete Akku-, App-Rechte- und Systemprüfungen. Echte lokale Messwerte statt erfundener Risiko-Scores.</string>
+    <string name="empty_search_title">Keine passenden Einträge gefunden</string>
+    <string name="empty_search_subtitle">Passe deinen Suchbegriff oder den aktiven Filter an.</string>
     <string name="privacy_ai_title">KI-Datenschutz-Analyse</string>
-    <string name="privacy_ai_analyze_button">Datenschutz-Tipps mit Gemini erstellen</string>
+    <string name="privacy_ai_analyze_button">Datenschutz-Tipps erstellen</string>
     <string name="privacy_ai_retry_button">Erneut analysieren</string>
     <string name="privacy_summary_title">Datenschutz-Cockpit</string>
     <string name="privacy_summary_subtitle">Berechtigungen &amp; Sicherheitscheck</string>
@@ -26,8 +26,8 @@
     <string name="privacy_summary_running">Checks laufen …</string>
     <string name="privacy_summary_open_apps">Apps &amp; Rechte verwalten</string>
     <string name="privacy_summary_open_security">System-Check Details</string>
-    <string name="privacy_summary_gemini_title">Gemini Nächste Schritte</string>
-    <string name="privacy_summary_gemini_analyze">Nächste Schritte mit Gemini analysieren</string>
+    <string name="privacy_summary_gemini_title">KI-Nächste Schritte</string>
+    <string name="privacy_summary_gemini_analyze">Nächste Schritte intelligent auswerten</string>
     <string name="privacy_summary_gemini_reanalyze">Erneut auswerten</string>
     <string name="privacy_summary_gemini_retry">Analyse wiederholen</string>
     <string name="action_export_app_list">App-Liste exportieren</string>
@@ -45,4 +45,8 @@
     <string name="hub_telemetry_subtitle_idle">Speicher, Akku &amp; Arbeitsspeicher · erst nach manuellem Start</string>
     <string name="hub_telemetry_subtitle_live">Lokale Momentaufnahme · rein im Arbeitsspeicher</string>
     <string name="hub_modules_title">Zentrale Werkzeuge</string>
+    <string name="low_battery_alert_title" formatted="false">Akku-Warnung unter 20 %</string>
+    <string name="low_battery_alert_channel_name">Akku-Warnungen</string>
+    <string name="low_battery_alert_channel_desc" formatted="false">Lokale Hinweise, wenn der Akkustand im Akkubetrieb unter 20 % fällt.</string>
+    <string name="privacy_concerns_title">Datenschutz-Hinweise</string>
 </resources>

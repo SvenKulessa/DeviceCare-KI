@@ -14,6 +14,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
@@ -38,14 +39,13 @@ fun SystemSecurityWorkflowScreen(
     onOpenPlayStore: () -> Unit,
     onOpenGoogleReleases: () -> Unit,
 ) {
-    MaterialTheme {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier.fillMaxSize().safeDrawingPadding()
-                    .testTag("system_security_workflow")
-                    .verticalScroll(rememberScrollState()).padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
+    Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent) {
+        Column(
+            modifier = Modifier.fillMaxSize().safeDrawingPadding()
+                .testTag("system_security_workflow")
+                .verticalScroll(rememberScrollState()).padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
                 Button(onClick = onBack, modifier = Modifier.heightIn(min = 48.dp)
                     .testTag("system_security_back")) { Text("Zurück zur Übersicht") }
                 Text("System- & Google-Sicherheitscheck",
@@ -64,11 +64,19 @@ fun SystemSecurityWorkflowScreen(
                     .semantics { liveRegion = LiveRegionMode.Polite },
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (evidenceLines.isEmpty()) {
-                        Text("Noch keine Prüfung ausgeführt (NOT_PROVEN).")
+                        Text("Noch keine Prüfung ausgeführt.")
                     } else {
-                        Text("Lokale Evidence", modifier = Modifier.semantics { heading() },
+                        Text("Lokale Prüfergebnisse", modifier = Modifier.semantics { heading() },
                             style = MaterialTheme.typography.titleMedium)
-                        evidenceLines.forEach { Text(it) }
+                        evidenceLines.forEach { line ->
+                            Text(
+                                line
+                                    .replace("NOT_PROVEN", "Lokal nicht bestätigt")
+                                    .replace("lokale Evidence", "lokale Prüfergebnisse")
+                                    .replace("Evidence:", "Prüfbasis:")
+                                    .replace(" [VERIFIED: System-API]", "")
+                            )
+                        }
                     }
                 }
                 Text("Manuelle Schritte", modifier = Modifier.semantics { heading() },
@@ -115,5 +123,4 @@ fun SystemSecurityWorkflowScreen(
                     "Kein Root, ADB, Reset, APK-Sideloading oder Fremdfirmware.")
             }
         }
-    }
 }

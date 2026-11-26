@@ -87,11 +87,13 @@ class ExampleRobolectricTest {
     composeTestRule.onNodeWithTag("scan_apps_permissions_button").performClick()
     composeTestRule.waitForIdle()
 
-    composeTestRule.onNodeWithTag("nav_roadmap").performClick()
+    composeTestRule.onNodeWithTag("nav_network").performClick()
     composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("rethink_recommendations_screen").assertExists()
 
-    composeTestRule.onNodeWithTag("nav_architecture").performClick()
+    composeTestRule.onNodeWithTag("nav_cockpit").performClick()
     composeTestRule.waitForIdle()
+    composeTestRule.onNodeWithTag("privacy_summary_screen").assertExists()
 
     composeTestRule.onNodeWithTag("nav_design").performClick()
     composeTestRule.waitForIdle()

@@ -198,7 +198,7 @@ fun HardwareInspectionSection(inspectionTimestamp: Long, isStale: Boolean) {
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
             } else {
-              Text("NOT_PROVEN · Funktion noch nicht getestet.",
+              Text("Noch nicht getestet · Funktion unbestätigt.",
                 style = MaterialTheme.typography.labelSmall)
             }
           }
@@ -226,7 +226,7 @@ fun HardwareInspectionSection(inspectionTimestamp: Long, isStale: Boolean) {
             Text(feature.label + ": " + if (feature.present) "ERKANNT" else "NICHT GEMELDET",
               style = MaterialTheme.typography.bodyMedium)
             if (feature.present) {
-              Text("Testoption: " + feature.testHint + " · NOT_PROVEN bis zum echten Nutzertest.",
+              Text("Testoption: " + feature.testHint + " · bis zum echten Nutzertest unbestätigt.",
                 style = MaterialTheme.typography.bodySmall)
             }
           }
