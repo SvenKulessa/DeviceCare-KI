@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" role="img" aria-label="DeviceCare KI Universe vier Android-Ansichten Konzeptmockup, keine realen Gerätemesswerte">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" role="img" aria-label="PocketDefend Universe vier Android-Ansichten Konzeptmockup, keine realen Gerätemesswerte">
 <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#060B20"/><stop offset="1" stop-color="#241A55"/></linearGradient></defs>
 <rect width="1200" height="750" fill="url(#bg)"/>
 <g fill="#B8C3D3"><circle cx="55" cy="58" r="2"/><circle cx="850" cy="80" r="3"/><circle cx="1095" cy="49" r="2"/></g>
-<text x="38" y="70" fill="#FFFFFF" font-size="60" font-weight="800" font-family="Arial">DeviceCare <tspan fill="#F5C24B">KI</tspan></text>
+<text x="38" y="70" fill="#FFFFFF" font-size="60" font-weight="800" font-family="Arial">Pocket<tspan fill="#F5C24B">Defend</tspan></text>
 <text x="40" y="112" fill="#B8C3D3" font-size="26" font-family="Arial">Universe UI · referenzielles Layout ohne Live-Evidence</text>
 <g transform="translate(30,150)">
  <rect x="0" y="0" width="268" height="505" rx="33" fill="#020716" stroke="#B8C3D3" stroke-width="5"/>
