@@ -1,4 +1,8 @@
-# DeviceCare KI — approved Universe visual identity v1.0
+# PocketDefend — approved Universe visual identity
+
+**Owner rebranding decision: 2026-11-27.** PocketDefend is the current product display name. The sole app source remains `SvenKulessa/DeviceCare-KI` until a separately verified repository rename. Application ID, namespace, signing, Firebase and route identifiers stay unchanged. The newly approved cinematic source `2026-11-27_PRODUCT_CHATGPT_PocketDefend_Logo_v1.png` is stored in the private project Drive PRODUCT folder (local SHA-256 `8862f7579fe15be2f3df372b2cd3520f71ca32c8a0ec9ce29a1246523bb4de55`). The PNG is not yet committed to Git; the existing scalable artwork is a derivative, not a pixel-identical copy. Trademark clearance and production publication remain unverified.
+
+## Historical v1.0 baseline
 
 **Owner decision:** 2026-11-19. **Primary repo:** `SvenKulessa/DeviceCare-KI`. **Baseline:** original generated brand-board, logo and four-screen mockup approved in chat. The SVG assets here are **implementation-safe scalable redraws**, *not pixel-identical replacements of the original PNG renders*.
 
