@@ -53,7 +53,9 @@ Adopt the execution pattern of [CAPITAL-AI Root AGENTS.md](https://github.com/Sv
 
 This addendum does not change branch protection, required checks, action permissions or production/release gates.
 
-## Approved UI branding — DeviceCare KI Universe v1.0 (owner, 2026-11-19)
+## Approved UI branding — PocketDefend (owner, 2026-11-27)
+
+PocketDefend is the product display name; the sole app source repository remains `SvenKulessa/DeviceCare-KI` pending controlled rename. Preserve technical identities, routes, signing, historical evidence and safety gates.
 
 Use `docs/brand/APPROVED-UNIVERSE-V1.md` and `assets/branding/approved/` as the
 visual source of truth for all new screens and maintenance of existing surfaces.
