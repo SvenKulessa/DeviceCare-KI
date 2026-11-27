@@ -128,7 +128,7 @@ fun DesignSystemScreen(
             )
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
               Text(
-                text = "DeviceCare KI · Universe Designsystem",
+                text = "PocketDefend · Universe Designsystem",
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface,
               )
@@ -338,7 +338,7 @@ fun DesignSystemScreen(
           Column(modifier = Modifier.fillMaxWidth()) {
             StudioToggleRow(
               icon = Icons.Outlined.Business,
-              title = "AI-DeviceCare+ Business-Ansicht",
+              title = "PocketDefend+ Business-Ansicht",
               subtitle = "Zeigt den internen M4-Enterprise-Prototyp im Prüf-Tab",
               checked = uiState.enterprisePreviewMode,
               onCheckedChange = onToggleEnterprisePreview,
@@ -487,7 +487,7 @@ fun DesignSystemScreen(
         )
         Text(
           text =
-            "Alle Farben, Typografie-Tokens und Ecken-Radien (${uiState.preferences.cornerStyle.label}) sind konsistent auf AI-DeviceCare angewendet.",
+            "Alle Farben, Typografie-Tokens und Ecken-Radien (${uiState.preferences.cornerStyle.label}) sind konsistent auf PocketDefend angewendet.",
           style = MaterialTheme.typography.bodyMedium,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
