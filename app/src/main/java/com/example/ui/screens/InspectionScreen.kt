@@ -184,7 +184,7 @@ fun InspectionScreen(
                   onOpenAppSettings = {
                     launchSettings(
                       ownAppSettings(context.packageName),
-                      "Öffne in den Einstellungen Apps → AI-DeviceCare.",
+                      "Öffne in den Einstellungen Apps → PocketDefend.",
                     )
                   },
                 )
@@ -287,8 +287,8 @@ private fun InspectionHeader(
           )
           Text(
             text =
-              if (enterprisePreview) "AI-DeviceCare+ · Business Prototyp"
-              else "DeviceCare KI · lokaler Prüfmodus",
+              if (enterprisePreview) "PocketDefend+ · Business Prototyp"
+              else "PocketDefend · lokaler Prüfmodus",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
           )
@@ -296,7 +296,7 @@ private fun InspectionHeader(
       }
 
       Text(
-        text = if (enterprisePreview) "DeviceCare KI+" else "DeviceCare KI",
+        text = if (enterprisePreview) "PocketDefend+" else "PocketDefend",
         style = MaterialTheme.typography.headlineLarge,
         color = MaterialTheme.colorScheme.onBackground,
         modifier = Modifier.semantics { heading() },
@@ -523,7 +523,7 @@ private fun EnterprisePrototypeNoticeCard(onOpenRoadmap: () -> Unit) {
       verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
       Text(
-        text = "AI-DeviceCare+ (Internal Prototype Only)",
+        text = "PocketDefend+ (Internal Prototype Only)",
         style = MaterialTheme.typography.titleMedium,
         color = MaterialTheme.colorScheme.onErrorContainer,
         modifier = Modifier.semantics { heading() },
