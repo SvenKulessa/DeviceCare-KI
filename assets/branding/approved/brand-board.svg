@@ -1,14 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="DeviceCare KI freigegebene Universe Brand Board v1">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="PocketDefend freigegebene Universe Brand Board v1">
  <defs><linearGradient id="space" x2="1" y2="1"><stop stop-color="#070D21"/><stop offset=".6" stop-color="#0B1435"/><stop offset="1" stop-color="#25194F"/></linearGradient></defs>
  <rect width="1200" height="900" fill="url(#space)"/>
  <g fill="#00E6FF" opacity=".65"><circle cx="112" cy="75" r="3"/><circle cx="923" cy="105" r="3"/><circle cx="1055" cy="277" r="2"/><circle cx="354" cy="113" r="2"/></g>
  <path d="M0 384 Q595 180 1200 390" stroke="#00E6FF" stroke-width="5" fill="none" opacity=".8"/>
- <text x="48" y="70" fill="#FFFFFF" font-family="Arial" font-size="29" letter-spacing="7">DEVICECARE KI  ·  APPROVED UNIVERSE BRAND</text>
+ <text x="48" y="70" fill="#FFFFFF" font-family="Arial" font-size="29" letter-spacing="7">POCKETDEFEND  ·  APPROVED UNIVERSE BRAND</text>
  <path d="M100 232 Q227 20 354 232 Q227 343 100 232Z" fill="none" stroke="#F5C24B" stroke-width="8"/>
  <path d="M227 97 L302 131 L295 240 Q278 279 227 309 Q176 279 159 240 L152 131Z" fill="#0B1435" stroke="#00E6FF" stroke-width="10"/>
  <rect x="199" y="164" width="55" height="90" rx="10" fill="#091631" stroke="#FFFFFF" stroke-width="5"/><rect x="213" y="193" width="27" height="28" fill="#00E6FF"/>
  <text x="215" y="211" font-size="14" font-weight="800" fill="#0B1435">AI</text>
- <text x="394" y="225" fill="#FFFFFF" font-family="Arial" font-size="92" font-weight="800" font-style="italic">DeviceCare <tspan fill="#F5C24B">KI</tspan></text>
+ <text x="394" y="225" fill="#FFFFFF" font-family="Arial" font-size="92" font-weight="800" font-style="italic">Pocket<tspan fill="#F5C24B">Defend</tspan></text>
  <text x="398" y="278" fill="#B8C3D3" font-size="31" font-family="Arial">Geräteschutz mit intelligenter Evidenz</text>
  <rect x="30" y="435" width="1140" height="280" rx="24" fill="#091531" stroke="#00E6FF" stroke-width="2"/>
  <text x="48" y="480" fill="#F5C24B" font-family="Arial" font-size="29" font-weight="700">7 verbindliche Markenfarben</text>
