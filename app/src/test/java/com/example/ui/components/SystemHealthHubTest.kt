@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -80,8 +81,12 @@ class SystemHealthHubTest {
     rule.onNodeWithTag("hub_battery_card").assertExists()
     rule.onNodeWithTag("hub_memory_card").assertExists()
     rule.onNodeWithTag("hub_storage_card").assertExists()
+    rule.onNodeWithTag("hub_health_overview_badge").assertExists()
+    rule.onNodeWithTag("hub_battery_status_icon", useUnmergedTree = true).assertExists()
+    rule.onNodeWithTag("hub_memory_status_icon", useUnmergedTree = true).assertExists()
+    rule.onNodeWithTag("hub_storage_status_icon", useUnmergedTree = true).assertExists()
     rule.onNodeWithTag("hub_modules_grid").assertExists()
-    rule.onNodeWithText("BEREIT · NOT_PROVEN").assertExists()
+    rule.onNodeWithText("BEREIT · LOKAL").assertExists()
 
     rule.onNodeWithTag("hub_battery_card").performScrollTo().performClick()
     rule.onNodeWithTag("hub_storage_card").performScrollTo().performClick()
@@ -129,6 +134,49 @@ class SystemHealthHubTest {
     rule.onNodeWithText("82%").assertExists()
     rule.onNodeWithText("63%").assertExists()
     rule.onNodeWithText("75%").assertExists()
+    rule.onNodeWithText("LÄDT").assertExists()
+    assertEquals(2, rule.onAllNodesWithText("GUT").fetchSemanticsNodes().size)
     assertTrue(result.systemHealthSnapshot!!.storageUsedFraction!! > 0.7f)
+  }
+
+  @Test
+  fun dashboardHubHighlightsCriticalHealthIndicatorLevelsWhenThresholdsExceeded() {
+    val criticalResult =
+      InspectionResult(
+        collectedAtMillis = 55_000L,
+        batteryPercent = 14,
+        batteryChargingState = "DISCHARGING",
+        batteryTemperatureDisplay = "35.0 °C",
+        systemHealthSnapshot =
+          SystemHealthSnapshot(
+            storageTotalBytes = 100L * 1024L * 1024L * 1024L,
+            storageAvailableBytes = 5L * 1024L * 1024L * 1024L,
+            memoryTotalBytes = 8L * 1024L * 1024L * 1024L,
+            memoryAvailableBytes = 512L * 1024L * 1024L,
+            lowMemoryReported = true,
+          ),
+      )
+
+    rule.setContent {
+      FormwerkTheme {
+        SystemHealthDashboardHub(
+          uiState = DeviceCareUiState(inspectionResult = criticalResult, isInspectionStale = false),
+          isWide = true,
+          onStartInspection = {},
+          onOpenBatteryMonitor = {},
+          onOpenAppPermissions = {},
+          onOpenSystemSecurity = {},
+          onOpenPrivacySummary = {},
+          onOpenAiAdvisor = {},
+          onOpenCloudSync = {},
+        )
+      }
+    }
+    rule.waitForIdle()
+
+    rule.onNodeWithText("ACHTUNG").assertExists()
+    rule.onNodeWithText("KRITISCH").assertExists()
+    rule.onNodeWithText("HOCH").assertExists()
+    rule.onNodeWithText("FAST VOLL").assertExists()
   }
 }

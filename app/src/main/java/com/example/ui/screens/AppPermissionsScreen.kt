@@ -107,9 +107,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
@@ -129,6 +131,7 @@ import com.example.devicecare.SettingsLaunchResult
 import com.example.devicecare.appPermissionSettingsIntent
 import com.example.devicecare.openDeviceSettings
 import com.example.features.permissions.AppExportFormat
+import com.example.features.permissions.AppOriginFilter
 import com.example.features.permissions.AppPermissionFilter
 import com.example.features.permissions.AppSectionCategory
 import com.example.features.permissions.CategorizedAppGroup
@@ -136,8 +139,12 @@ import com.example.features.permissions.GrantedDangerousPermission
 import com.example.features.permissions.InstalledAppPermissionInfo
 import com.example.features.permissions.InstalledAppsExporter
 import com.example.features.permissions.InstalledAppsScanResult
+import com.example.features.permissions.PrivacyConcernLevel
 import com.example.features.permissions.SensitivityCategory
 import com.example.ui.DeviceCareUiState
+import com.example.ui.components.AppSecurityPostureDetailSection
+import com.example.ui.components.AppTamperAndFirewallCardSection
+import com.example.ui.components.FirewallSecurityRethinkBanner
 import com.example.ui.components.MetricRingCard
 import com.example.ui.theme.MonoTokenTextStyle
 import kotlinx.coroutines.Dispatchers
@@ -159,8 +166,13 @@ fun AppPermissionsScreen(
   onAnalyzePrivacy: () -> Unit = {},
   onClearPrivacyAnalysis: () -> Unit = {},
   onExportRequested: ((AppExportFormat, Boolean) -> Unit)? = null,
+  onSelectOriginFilter: ((AppOriginFilter) -> Unit)? = null,
+  onOpenRethinkGuide: () -> Unit = {},
+  onToggleAppRethinkRule: ((String, String, Boolean) -> Unit)? = null,
+  onResetAppRethinkRules: ((String) -> Unit)? = null,
 ) {
   val context = LocalContext.current
+  val clipboardManager = LocalClipboardManager.current
   val lifecycleOwner = LocalLifecycleOwner.current
   val coroutineScope = rememberCoroutineScope()
   val compact = uiState.preferences.compactDensity
@@ -283,13 +295,14 @@ fun AppPermissionsScreen(
         ) {
           Column(modifier = Modifier.weight(1f)) {
             Text(
-              text = "App-Berechtigungen",
+              text = "Apps, Sicherheit & Firewall",
               style = MaterialTheme.typography.headlineLarge,
               color = MaterialTheme.colorScheme.onBackground,
               modifier = Modifier.semantics { heading() },
             )
             Text(
-              text = "Installierte (OS-sichtbare) Apps & gewährte Laufzeitrechte.",
+              text =
+                "Alle sichtbaren Nutzer- & System-Apps: Rechte, Manipulationen & Firewall-Regeln.",
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -368,12 +381,48 @@ fun AppPermissionsScreen(
             contentPadding = PaddingValues(vertical = 2.dp),
           ) {
             item {
+              val isAllOrigin =
+                uiState.selectedOriginFilter == AppOriginFilter.ALL && !uiState.hideSystemApps
               FilterChip(
-                selected = uiState.hideSystemApps,
-                onClick = onToggleHideSystemApps,
-                label = { Text("Nur Nutzer-Apps") },
+                selected = isAllOrigin,
+                onClick = {
+                  if (onSelectOriginFilter != null) {
+                    onSelectOriginFilter(AppOriginFilter.ALL)
+                  } else if (uiState.hideSystemApps) {
+                    onToggleHideSystemApps()
+                  }
+                },
+                label = { Text("Alle (${scanResult.visiblePackageCount})") },
                 leadingIcon =
-                  if (uiState.hideSystemApps) {
+                  if (isAllOrigin) {
+                    {
+                      Icon(
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                      )
+                    }
+                  } else null,
+                modifier = Modifier.testTag("origin_filter_all"),
+              )
+            }
+            item {
+              val isUserOnly =
+                uiState.hideSystemApps || uiState.selectedOriginFilter == AppOriginFilter.USER_ONLY
+              FilterChip(
+                selected = isUserOnly,
+                onClick = {
+                  if (onSelectOriginFilter != null) {
+                    onSelectOriginFilter(
+                      if (isUserOnly) AppOriginFilter.ALL else AppOriginFilter.USER_ONLY
+                    )
+                  } else {
+                    onToggleHideSystemApps()
+                  }
+                },
+                label = { Text("Nur Nutzer (${scanResult.userAppsCount})") },
+                leadingIcon =
+                  if (isUserOnly) {
                     {
                       Icon(
                         imageVector = Icons.Filled.Check,
@@ -383,6 +432,29 @@ fun AppPermissionsScreen(
                     }
                   } else null,
                 modifier = Modifier.testTag("hide_system_apps_chip"),
+              )
+            }
+            item {
+              val isSystemOnly = uiState.selectedOriginFilter == AppOriginFilter.SYSTEM_ONLY
+              FilterChip(
+                selected = isSystemOnly,
+                onClick = {
+                  onSelectOriginFilter?.invoke(
+                    if (isSystemOnly) AppOriginFilter.ALL else AppOriginFilter.SYSTEM_ONLY
+                  )
+                },
+                label = { Text("Nur System (${scanResult.systemAppsCount})") },
+                leadingIcon =
+                  if (isSystemOnly) {
+                    {
+                      Icon(
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                      )
+                    }
+                  } else null,
+                modifier = Modifier.testTag("only_system_apps_chip"),
               )
             }
             items(AppPermissionFilter.entries) { filter ->
@@ -402,6 +474,7 @@ fun AppPermissionsScreen(
           InitialScanPromptView(
             scanning = uiState.installedAppsScanning,
             onStartScan = onStartScan,
+            onOpenRethinkGuide = onOpenRethinkGuide,
             modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp).weight(1f),
           )
         }
@@ -492,6 +565,7 @@ fun AppPermissionsScreen(
                 activeFilter = uiState.selectedAppFilter,
                 onSelectFilter = onSelectFilter,
                 onOpenExport = { showExportDialog = true },
+                onOpenRethinkGuide = onOpenRethinkGuide,
               )
             }
 
@@ -560,9 +634,24 @@ fun AppPermissionsScreen(
     ) {
       AppPermissionDetailSheet(
         app = activeDetailApp,
+        ruleOverrides = uiState.appRethinkRuleOverrides[activeDetailApp.packageName].orEmpty(),
+        onToggleRethinkRule =
+          onToggleAppRethinkRule?.let { cb ->
+            { ruleId: String, enabled: Boolean -> cb(activeDetailApp.packageName, ruleId, enabled) }
+          },
+        onResetRethinkRules =
+          onResetAppRethinkRules?.let { cb -> { cb(activeDetailApp.packageName) } },
+        onCopyRethinkRules = { formattedText ->
+          clipboardManager.setText(AnnotatedString(formattedText))
+          onShowSnackbar("Rethink-Regeln für ${activeDetailApp.appName} kopiert.")
+        },
         onOpenSettings = {
           selectedApp = null
           openSystemAppInfo(activeDetailApp)
+        },
+        onOpenRethinkGuide = {
+          selectedApp = null
+          onOpenRethinkGuide()
         },
       )
     }
@@ -573,6 +662,7 @@ fun AppPermissionsScreen(
 private fun InitialScanPromptView(
   scanning: Boolean,
   onStartScan: () -> Unit,
+  onOpenRethinkGuide: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Column(
@@ -635,7 +725,7 @@ private fun InitialScanPromptView(
             )
             Text(
               text =
-                "Ohne QUERY_ALL_PACKAGES (nutzt <queries> für Launcher-Apps). Keine Speicherung, kein Upload, kein Hintergrundscan.",
+                "Prüft ausschließlich Apps, die vom System für Launcher-Übersichten freigegeben sind. Keine Speicherung, kein Upload, kein Hintergrundscan.",
               style = MaterialTheme.typography.bodySmall,
               color = MaterialTheme.colorScheme.onSecondaryContainer,
             )
@@ -668,6 +758,22 @@ private fun InitialScanPromptView(
             Text(stringResource(R.string.action_scan_app_permissions))
           }
         }
+
+        OutlinedButton(
+          onClick = onOpenRethinkGuide,
+          modifier =
+            Modifier.fillMaxWidth()
+              .minimumInteractiveComponentSize()
+              .testTag("initial_open_rethink_button"),
+        ) {
+          Icon(
+            imageVector = Icons.Outlined.Security,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+          )
+          Spacer(modifier = Modifier.width(8.dp))
+          Text("Rethink Firewall-, DNS- & Netz-Empfehlungen")
+        }
       }
     }
   }
@@ -681,6 +787,7 @@ private fun ScanSummaryHeader(
   activeFilter: AppPermissionFilter,
   onSelectFilter: (AppPermissionFilter) -> Unit,
   onOpenExport: () -> Unit,
+  onOpenRethinkGuide: () -> Unit,
 ) {
   val summary = remember(scanResult) { InstalledAppsExporter.summarize(scanResult, true) }
   Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -749,6 +856,80 @@ private fun ScanSummaryHeader(
         }
       }
     }
+
+    if (scanResult.appsWithPrivacyConcernsCount > 0) {
+      Card(
+        modifier = Modifier.fillMaxWidth().testTag("privacy_concerns_highlight_banner"),
+        shape = MaterialTheme.shapes.large,
+        colors =
+          CardDefaults.cardColors(
+            containerColor =
+              if (scanResult.highPrivacyConcernCount > 0)
+                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.55f)
+              else MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.55f)
+          ),
+        border =
+          BorderStroke(
+            width = 1.dp,
+            color =
+              if (scanResult.highPrivacyConcernCount > 0)
+                MaterialTheme.colorScheme.error.copy(alpha = 0.55f)
+              else MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f),
+          ),
+      ) {
+        Row(
+          modifier = Modifier.fillMaxWidth().padding(14.dp),
+          horizontalArrangement = Arrangement.spacedBy(12.dp),
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Icon(
+            imageVector = Icons.Outlined.PrivacyTip,
+            contentDescription = null,
+            tint =
+              if (scanResult.highPrivacyConcernCount > 0) MaterialTheme.colorScheme.error
+              else MaterialTheme.colorScheme.tertiary,
+            modifier = Modifier.size(22.dp),
+          )
+          Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+              text =
+                "${scanResult.appsWithPrivacyConcernsCount} Apps mit möglichen Datenschutz-Hinweisen",
+              style = MaterialTheme.typography.titleSmall,
+              color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+              text =
+                if (scanResult.highPrivacyConcernCount > 0) {
+                  "${scanResult.highPrivacyConcernCount} mit hoher Priorität (z. B. Hintergrund-Standort oder Kamera + Standort kombiniert)."
+                } else {
+                  "Zugriffe auf Kamera, Standort, Mikrofon, Telefon/SMS oder Kontakte hervorgehoben."
+                },
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+          FilledTonalButton(
+            onClick = { onSelectFilter(AppPermissionFilter.SENSITIVE_ONLY) },
+            modifier =
+              Modifier.minimumInteractiveComponentSize()
+                .testTag("filter_privacy_concerns_button"),
+          ) {
+            Text(
+              text =
+                if (activeFilter == AppPermissionFilter.SENSITIVE_ONLY) "Alle" else "Sensible",
+              maxLines = 1,
+            )
+          }
+        }
+      }
+    }
+
+    FirewallSecurityRethinkBanner(
+      scanResult = scanResult,
+      onFilterManipulation = { onSelectFilter(AppPermissionFilter.MANIPULATION_RISK) },
+      onFilterFirewallBlock = { onSelectFilter(AppPermissionFilter.FIREWALL_BLOCK) },
+      onOpenRethinkGuide = onOpenRethinkGuide,
+    )
 
     if (scanResult.apps.isNotEmpty()) {
       FilledTonalButton(
@@ -909,7 +1090,7 @@ private fun ExportInstalledAppsDialog(
 
         Text(
           text =
-            "Speichert App-Namen, Paketnamen, Typ (Nutzer/System), Version und gewährte Laufzeitrechte ausschließlich lokal in eine von dir gewählte Datei (ohne QUERY_ALL_PACKAGES, ohne Speicherberechtigung, ohne Cloud-Upload).",
+            "Speichert App-Namen, Paketnamen, Typ (Nutzer/System), Version und gewährte Laufzeitrechte ausschließlich lokal in eine von dir gewählte Datei (ohne gesonderte Speicherberechtigung und ohne Cloud-Upload).",
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -979,7 +1160,7 @@ private fun GeminiPrivacyAdvisorCard(
             modifier = Modifier.semantics { heading() },
           )
           Text(
-            text = "Gemini 3.8 Flash · Opt-in Empfehlungen für gewährte Rechte",
+            text = "On-Demand KI-Hilfe · Opt-in Empfehlungen für gewährte Rechte",
             style = MonoTokenTextStyle,
             color = MaterialTheme.colorScheme.primary,
           )
@@ -1002,7 +1183,7 @@ private fun GeminiPrivacyAdvisorCard(
         is PermissionPrivacyAnalysisState.Idle -> {
           Text(
             text =
-              "Lass deine ${scanResult.appsWithDangerousCount} App(s) mit gewährten gefährlichen Berechtigungen on-demand von Gemini auswerten, um verständliche Vorschläge zur Härtung der Privatsphäre zu erhalten.",
+              "Lass deine ${scanResult.appsWithDangerousCount} App(s) mit gewährten gefährlichen Berechtigungen auf Abruf vom KI-Berater auswerten, um verständliche Vorschläge zur Härtung der Privatsphäre zu erhalten.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
           )
@@ -1023,7 +1204,7 @@ private fun GeminiPrivacyAdvisorCard(
               )
               Text(
                 text =
-                  "Nur nach deinem Tipp werden App-Namen & gewährte Berechtigungen über Firebase AI Logic an Gemini gesendet.",
+                  "Nur nach deinem Tipp werden App-Namen & gewährte Berechtigungen an den KI-Berater zur Auswertung übertragen.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
               )
@@ -1056,7 +1237,7 @@ private fun GeminiPrivacyAdvisorCard(
             CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.5.dp)
             Column(modifier = Modifier.weight(1f)) {
               Text(
-                text = "Gemini wertet Berechtigungen aus...",
+                text = "KI-Berater wertet Berechtigungen aus...",
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurface,
               )
@@ -1693,7 +1874,7 @@ private fun InstalledAppPermissionCard(
           app.grantedDangerousPermissions.take(6).forEach { perm ->
             PermissionSensitivityChip(perm = perm)
           }
-              if (app.grantedDangerousPermissions.size > 6) {
+          if (app.grantedDangerousPermissions.size > 6) {
             Surface(
               shape = MaterialTheme.shapes.small,
               color = MaterialTheme.colorScheme.surfaceContainerHighest,
@@ -1707,6 +1888,55 @@ private fun InstalledAppPermissionCard(
             }
           }
         }
+      }
+
+      if (app.privacyConcernReasons.isNotEmpty()) {
+        val isHighConcern = app.privacyConcernLevel == PrivacyConcernLevel.HIGH
+        Surface(
+          shape = MaterialTheme.shapes.medium,
+          color =
+            if (isHighConcern) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.72f)
+            else MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.72f),
+          modifier = Modifier.fillMaxWidth().testTag("app_privacy_concern_${app.packageName}"),
+        ) {
+          Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.Top,
+          ) {
+            Icon(
+              imageVector =
+                if (isHighConcern) Icons.Outlined.WarningAmber else Icons.Outlined.PrivacyTip,
+              contentDescription = null,
+              tint =
+                if (isHighConcern) MaterialTheme.colorScheme.onErrorContainer
+                else MaterialTheme.colorScheme.onTertiaryContainer,
+              modifier = Modifier.padding(top = 1.dp).size(16.dp),
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+              Text(
+                text = "Datenschutz-Hinweis · ${app.privacyConcernLevel.label}",
+                style = MaterialTheme.typography.labelMedium,
+                color =
+                  if (isHighConcern) MaterialTheme.colorScheme.onErrorContainer
+                  else MaterialTheme.colorScheme.onTertiaryContainer,
+              )
+              app.privacyConcernReasons.take(2).forEach { reason ->
+                Text(
+                  text = "• $reason",
+                  style = MaterialTheme.typography.bodySmall,
+                  color =
+                    if (isHighConcern) MaterialTheme.colorScheme.onErrorContainer
+                    else MaterialTheme.colorScheme.onTertiaryContainer,
+                )
+              }
+            }
+          }
+        }
+      }
+
+      app.securityPosture?.let { posture ->
+        AppTamperAndFirewallCardSection(app = app, posture = posture)
       }
 
       HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
@@ -1812,11 +2042,19 @@ private fun PermissionSensitivityChip(perm: GrantedDangerousPermission) {
 private fun AppPermissionDetailSheet(
   app: InstalledAppPermissionInfo,
   onOpenSettings: () -> Unit,
+  onOpenRethinkGuide: () -> Unit = {},
+  ruleOverrides: Map<String, Boolean> = emptyMap(),
+  onToggleRethinkRule: ((String, Boolean) -> Unit)? = null,
+  onResetRethinkRules: (() -> Unit)? = null,
+  onCopyRethinkRules: ((String) -> Unit)? = null,
 ) {
   val iconBitmap = rememberAppIconBitmap(app.packageName)
 
   LazyColumn(
-    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+    modifier =
+      Modifier.fillMaxWidth()
+        .padding(horizontal = 20.dp)
+        .testTag("app_detail_sheet_list_${app.packageName}"),
     verticalArrangement = Arrangement.spacedBy(12.dp),
     contentPadding = PaddingValues(bottom = 28.dp),
   ) {
@@ -1892,6 +2130,56 @@ private fun AppPermissionDetailSheet(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onTertiaryContainer,
           )
+        }
+      }
+    }
+
+    app.securityPosture?.let { posture ->
+      item {
+        AppSecurityPostureDetailSection(
+          app = app,
+          posture = posture,
+          onOpenRethinkGuide = onOpenRethinkGuide,
+          ruleOverrides = ruleOverrides,
+          onToggleRethinkRule = onToggleRethinkRule,
+          onResetRethinkRules = onResetRethinkRules,
+          onCopyRethinkRules = onCopyRethinkRules,
+        )
+      }
+    }
+
+    if (app.privacyConcernReasons.isNotEmpty()) {
+      item {
+        Surface(
+          shape = MaterialTheme.shapes.medium,
+          color =
+            if (app.privacyConcernLevel == PrivacyConcernLevel.HIGH)
+              MaterialTheme.colorScheme.errorContainer
+            else MaterialTheme.colorScheme.secondaryContainer,
+        ) {
+          Column(
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+          ) {
+            Text(
+              text = "Datenschutz-Hinweise (${app.privacyConcernLevel.label})",
+              style = MaterialTheme.typography.titleSmall,
+              color =
+                if (app.privacyConcernLevel == PrivacyConcernLevel.HIGH)
+                  MaterialTheme.colorScheme.onErrorContainer
+                else MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            app.privacyConcernReasons.forEach { reason ->
+              Text(
+                text = "• $reason",
+                style = MaterialTheme.typography.bodySmall,
+                color =
+                  if (app.privacyConcernLevel == PrivacyConcernLevel.HIGH)
+                    MaterialTheme.colorScheme.onErrorContainer
+                  else MaterialTheme.colorScheme.onSecondaryContainer,
+              )
+            }
+          }
         }
       }
     }

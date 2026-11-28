@@ -10,7 +10,7 @@ enum class CareNoteCategory(val code: String, val label: String) {
   GENERAL("GENERAL", "Allgemein"),
   BATTERY("BATTERY", "Akku"),
   PERMISSIONS("PERMISSIONS", "Berechtigungen"),
-  QA("QA", "Android 15 QA");
+  QA("QA", "Prüfpunkt");
 
   companion object {
     fun fromCode(raw: String?): CareNoteCategory =

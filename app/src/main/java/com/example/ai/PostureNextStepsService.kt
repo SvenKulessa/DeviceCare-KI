@@ -137,11 +137,11 @@ class GeminiPostureNextStepsService : PostureNextStepsService {
       systemInstruction =
         content {
           text(
-            "Du bist der Datenschutz- und Sicherheitsberater im Dashboard 'Datenschutz-Cockpit' von AI-DeviceCare. " +
+            "Du bist der Datenschutz- und Sicherheitsberater im Bereich 'Datenschutz-Cockpit' von DeviceCare KI. " +
               "Du erhältst eine anonymisierte Zusammenfassung des aktuellen lokalen Gerätestatus (ohne App-Paketnamen oder persönliche Daten). " +
               "Erstelle auf Deutsch eine priorisierte, leicht verständliche Liste konkreter 'Nächster Schritte' in klarer Alltagssprache. " +
               "Regeln: Erfinde niemals nicht gemessene Fakten oder Risiko-Scores. Wenn Scans fehlen oder externe Dienste " +
-              "(wie Play Protect oder Hersteller-Updates) als NOT_PROVEN markiert sind, benenne dies ehrlich und empfehle die passende manuelle Prüfung. " +
+              "(wie Play Protect oder Hersteller-Updates) lokal nicht bestätigt sind, benenne dies ehrlich und empfehle die passende manuelle Prüfung. " +
               "Schlage keine Root-, ADB- oder unsicheren Drittanbieter-Eingriffe vor."
           )
         },
@@ -156,7 +156,7 @@ class GeminiPostureNextStepsService : PostureNextStepsService {
     val response = withTimeout(NEXT_STEPS_TIMEOUT_MILLIS) { model.generateContent(prompt) }
     val jsonString =
       response.text?.takeIf { it.isNotBlank() }
-        ?: throw IllegalStateException("Gemini hat keine Nächsten-Schritte-Auswertung geliefert.")
+        ?: throw IllegalStateException("Der KI-Berater hat keine Nächsten-Schritte-Auswertung geliefert.")
     return parseNextStepsJson(jsonString)
   }
 
@@ -173,7 +173,7 @@ class GeminiPostureNextStepsService : PostureNextStepsService {
       appendLine("- Gesamteinstufung lokal: ${report.postureTier.title} (${report.postureTier.badge})")
       appendLine("- Abgeschlossene lokale Prüfmodule: ${report.checksCompletedCount} von ${report.checksTotalCount}")
       appendLine(
-        "- Berechtigungsscan durchgeführt: ${if (report.hasPermissionScan) "ja" else "nein (NOT_PROVEN)"}"
+        "- Berechtigungsscan durchgeführt: ${if (report.hasPermissionScan) "ja" else "nein (noch nicht geprüft)"}"
       )
       if (report.hasPermissionScan) {
         appendLine("  * Sichtbare Apps insgesamt: ${report.visibleAppsCount}")
@@ -186,22 +186,22 @@ class GeminiPostureNextStepsService : PostureNextStepsService {
         }
       }
       appendLine(
-        "- System- & Google-Check durchgeführt: ${if (report.hasSecurityCheck) "ja" else "nein (NOT_PROVEN)"}"
+        "- System- & Google-Check durchgeführt: ${if (report.hasSecurityCheck) "ja" else "nein (noch nicht geprüft)"}"
       )
       if (report.hasSecurityCheck) {
-        appendLine("  * Betriebssystem: ${report.androidReleaseLabel ?: "NOT_PROVEN"}")
+        appendLine("  * Betriebssystem: ${report.androidReleaseLabel ?: "nicht auslesbar"}")
         appendLine("  * Sicherheitspatch: ${report.securityPatch ?: "nicht verfügbar"} (${report.securitySnapshotStatusLabel})")
         appendLine(
           "  * Patch-Alter-Signal: " +
             when (report.patchAgeSignal) {
               PatchAgeSignal.REVIEW_RECOMMENDED -> "REVIEW_RECOMMENDED (>= 60 Tage alt laut Geräteuhr)"
               PatchAgeSignal.NO_AGE_WARNING -> "NO_AGE_WARNING (kein Alterswarnsignal)"
-              PatchAgeSignal.NOT_PROVEN -> "NOT_PROVEN"
+              PatchAgeSignal.NOT_PROVEN -> "Lokal nicht bestätigt"
             }
         )
-        appendLine("  * Google Play-Dienste auslesbar: ${if (report.playServicesVersion != null) "ja (${report.playServicesVersion})" else "NOT_PROVEN"}")
-        appendLine("  * Google Play Store auslesbar: ${if (report.playStoreVersion != null) "ja (${report.playStoreVersion})" else "NOT_PROVEN"}")
-        appendLine("  * WebView-Provider auslesbar: ${if (report.webViewVersion != null) "ja (${report.webViewVersion})" else "NOT_PROVEN"}")
+        appendLine("  * Google Play-Dienste auslesbar: ${if (report.playServicesVersion != null) "ja (${report.playServicesVersion})" else "nicht auslesbar"}")
+        appendLine("  * Google Play Store auslesbar: ${if (report.playStoreVersion != null) "ja (${report.playStoreVersion})" else "nicht auslesbar"}")
+        appendLine("  * WebView-Provider auslesbar: ${if (report.webViewVersion != null) "ja (${report.webViewVersion})" else "nicht auslesbar"}")
       }
       appendLine("- Lokale Geräteinspektion durchgeführt: ${if (report.hasInspectionRun) "ja" else "nein"}")
       if (batterySnapshot != null && batterySnapshot.errorMessage == null) {

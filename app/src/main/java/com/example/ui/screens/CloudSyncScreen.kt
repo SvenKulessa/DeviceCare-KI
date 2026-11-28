@@ -61,6 +61,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.heading
@@ -126,7 +127,7 @@ fun CloudSyncScreen(
 
   Scaffold(
     modifier = modifier.fillMaxSize().testTag("cloud_sync_screen"),
-    containerColor = MaterialTheme.colorScheme.background,
+    containerColor = Color.Transparent,
     topBar = {
       TopAppBar(
         title = {
@@ -139,7 +140,7 @@ fun CloudSyncScreen(
             )
             Text(
               text =
-                if (user != null) "Angemeldet · Firestore Sync"
+                if (user != null) "Angemeldet · Cloud-Notizen aktiv"
                 else "Anmeldung erforderlich",
               style = MaterialTheme.typography.labelSmall,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -179,7 +180,7 @@ fun CloudSyncScreen(
         },
         colors =
           TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.88f)
           ),
       )
     },
@@ -288,7 +289,7 @@ private fun CloudAuthGateContent(
 
         Text(
           text =
-            "Melde dich mit Google an, um eigene Wartungschecklisten, Akku-Beobachtungen und QA-Notizen verschlüsselt und kontogebunden in Cloud Firestore zu sichern.",
+            "Melde dich mit deinem Google-Konto an, um eigene Wartungschecklisten, Akku-Beobachtungen und Prüfnotizen verschlüsselt und kontogebunden in deinem persönlichen Cloud-Bereich zu sichern.",
           style = MaterialTheme.typography.bodyMedium,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -301,9 +302,8 @@ private fun CloudAuthGateContent(
 
         if (!isConfigured) {
           Text(
-            text = "Cloud-Sync derzeit nicht konfiguriert (NOT_PROVEN). " +
-              "Die App benötigt eine gültige Firebase-Konfiguration. " +
-              "Lokale Gerätedaten bleiben auf diesem Gerät.",
+            text = "Cloud-Notizen sind auf diesem Gerät derzeit nicht aktiviert. " +
+              "Lokale Gerätedaten bleiben ausschließlich auf diesem Gerät.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error,
             modifier = Modifier.testTag("cloud_unconfigured_notice"),
@@ -364,7 +364,7 @@ private fun CloudAuthGateContent(
               modifier = Modifier.size(18.dp),
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Sign in with Google")
+            Text("Mit Google anmelden")
           }
         }
       }
@@ -473,7 +473,7 @@ private fun CloudNotesAuthenticatedContent(
               color = MaterialTheme.colorScheme.onSecondaryContainer,
             )
             Text(
-              text = "Eigener Firestore-Speicher aktiv · Echtzeit-Sync",
+              text = "Persönlicher Cloud-Speicher aktiv · Echtzeit-Sync",
               style = MonoTokenTextStyle,
               color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f),
             )
@@ -544,7 +544,7 @@ private fun CloudNotesAuthenticatedContent(
                 )
                 Text(
                   text =
-                    "Tippe unten rechts auf +, um eine Wartungs- oder Prüfpunkt-Notiz kontogebunden in Cloud Firestore abzulegen.",
+                    "Tippe unten rechts auf +, um eine Wartungs- oder Prüfpunkt-Notiz kontogebunden in deinen persönlichen Cloud-Notizen abzulegen.",
                   style = MaterialTheme.typography.bodySmall,
                   color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

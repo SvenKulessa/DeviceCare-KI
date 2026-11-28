@@ -51,16 +51,16 @@ class RobolectricAcceptanceCujTest {
     rule.waitForIdle()
 
     rule.onNodeWithTag("system_security_workflow").assertExists()
-    rule.onNodeWithText("Noch keine Prüfung ausgeführt (NOT_PROVEN).").assertExists()
+    rule.onNodeWithText("Noch keine Prüfung ausgeführt.").assertExists()
 
     rule.onNodeWithTag("system_security_start").performClick()
     rule.waitUntil(timeoutMillis = 5_000) {
       runCatching {
-          rule.onAllNodes(hasText("Lokale Evidence")).fetchSemanticsNodes().isNotEmpty()
+          rule.onAllNodes(hasText("Lokale Prüfergebnisse")).fetchSemanticsNodes().isNotEmpty()
         }
         .getOrDefault(false)
     }
-    rule.onNodeWithText("Lokale Evidence").assertExists()
+    rule.onNodeWithText("Lokale Prüfergebnisse").assertExists()
 
     rule.onNodeWithTag("system_security_back").performClick()
     rule.waitForIdle()

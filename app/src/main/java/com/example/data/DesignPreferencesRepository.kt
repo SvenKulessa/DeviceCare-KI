@@ -30,6 +30,7 @@ data class DesignPreferences(
   val cornerStyle: CornerStyle = CornerStyle.BALANCED,
   val compactDensity: Boolean = false,
   val hapticPreview: Boolean = true,
+  val lowBatteryAlertsEnabled: Boolean = false,
   val localVerifiedTaskIds: Set<String> = emptySet(),
   val bookmarkedTaskIds: Set<String> = setOf("ms-m1", "rem-p1-budget", "qa-4-a11y"),
 )
@@ -41,6 +42,7 @@ class DesignPreferencesRepository(private val context: Context) {
     val CORNER_STYLE = stringPreferencesKey("corner_style")
     val COMPACT_DENSITY = booleanPreferencesKey("compact_density")
     val HAPTIC_PREVIEW = booleanPreferencesKey("haptic_preview")
+    val LOW_BATTERY_ALERTS_ENABLED = booleanPreferencesKey("low_battery_alerts_enabled")
     val VERIFIED_TASKS = stringSetPreferencesKey("verified_task_ids")
     val BOOKMARKED_TASKS = stringSetPreferencesKey("bookmarked_task_ids")
   }
@@ -71,6 +73,7 @@ class DesignPreferencesRepository(private val context: Context) {
         cornerStyle = cornerStyle,
         compactDensity = prefs[Keys.COMPACT_DENSITY] ?: false,
         hapticPreview = prefs[Keys.HAPTIC_PREVIEW] ?: true,
+        lowBatteryAlertsEnabled = prefs[Keys.LOW_BATTERY_ALERTS_ENABLED] ?: false,
         localVerifiedTaskIds = prefs[Keys.VERIFIED_TASKS] ?: emptySet(),
         bookmarkedTaskIds =
           prefs[Keys.BOOKMARKED_TASKS] ?: setOf("ms-m1", "rem-p1-budget", "qa-4-a11y"),
@@ -95,6 +98,10 @@ class DesignPreferencesRepository(private val context: Context) {
 
   suspend fun setHapticPreview(enabled: Boolean) {
     context.designDataStore.edit { it[Keys.HAPTIC_PREVIEW] = enabled }
+  }
+
+  suspend fun setLowBatteryAlertsEnabled(enabled: Boolean) {
+    context.designDataStore.edit { it[Keys.LOW_BATTERY_ALERTS_ENABLED] = enabled }
   }
 
   suspend fun toggleLocalTaskVerified(taskId: String) {

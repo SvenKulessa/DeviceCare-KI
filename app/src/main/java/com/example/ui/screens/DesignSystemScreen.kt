@@ -22,13 +22,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.RestartAlt
-import androidx.compose.material.icons.outlined.Business
 import androidx.compose.material.icons.outlined.Compress
 import androidx.compose.material.icons.outlined.Vibration
 import androidx.compose.material3.Button
@@ -62,10 +59,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.R
-import com.example.model.RoadmapTask
 import com.example.ui.DeviceCareUiState
 import com.example.ui.components.PaletteSwatchCard
 import com.example.ui.theme.CornerStyle
@@ -77,14 +72,11 @@ import com.example.ui.theme.ThemePalette
 @Composable
 fun DesignSystemScreen(
   uiState: DeviceCareUiState,
-  bookmarkedTasks: List<RoadmapTask>,
   onSelectPalette: (ThemePalette) -> Unit,
   onSelectThemeMode: (ThemeMode) -> Unit,
   onSelectCornerStyle: (CornerStyle) -> Unit,
   onToggleCompactDensity: (Boolean) -> Unit,
   onToggleHapticPreview: (Boolean) -> Unit,
-  onToggleEnterprisePreview: (Boolean) -> Unit,
-  onOpenTaskDetail: (String) -> Unit,
   onResetDefaults: () -> Unit,
   onShowSnackbar: (String) -> Unit,
   modifier: Modifier = Modifier,
@@ -128,7 +120,7 @@ fun DesignSystemScreen(
             )
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
               Text(
-                text = "DeviceCare KI · Universe Designsystem",
+                text = "DeviceCare KI · Universe Design",
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface,
               )
@@ -139,7 +131,7 @@ fun DesignSystemScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
               )
               Text(
-                text = "UI-Vorgaben gespeichert · Messwerte bleiben rein lokal im RAM",
+                text = "Anzeigevorgaben gespeichert · Messwerte bleiben lokal",
                 style = MonoTokenTextStyle,
                 color = MaterialTheme.colorScheme.primary,
               )
@@ -156,7 +148,7 @@ fun DesignSystemScreen(
         verticalArrangement = Arrangement.spacedBy(10.dp),
       ) {
         Text(
-          text = "1. Farbpalette · Universe ist der freigegebene Standard",
+          text = "1. Farbpalette · Universe Standarddesign",
           style = MaterialTheme.typography.titleMedium,
           color = MaterialTheme.colorScheme.onBackground,
           modifier = Modifier.padding(horizontal = 16.dp),
@@ -250,104 +242,24 @@ fun DesignSystemScreen(
       }
     }
 
-    // 3. Gemerkte Aufgaben Schnellzugriff
-    if (bookmarkedTasks.isNotEmpty()) {
-      item {
-        Column(
-          modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp),
-          verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-          Text(
-            text = "Gemerkte Aufgaben & Meilensteine",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(horizontal = 16.dp),
-          )
-          LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-          ) {
-            items(bookmarkedTasks, key = { it.id }) { task ->
-              Card(
-                modifier =
-                  Modifier.width(230.dp)
-                    .clip(MaterialTheme.shapes.large)
-                    .clickable { onOpenTaskDetail(task.id) },
-                shape = MaterialTheme.shapes.large,
-                colors =
-                  CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                  ),
-              ) {
-                Row(
-                  modifier = Modifier.fillMaxWidth().padding(14.dp),
-                  verticalAlignment = Alignment.CenterVertically,
-                  horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                  Icon(
-                    imageVector = Icons.Filled.Bookmark,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp),
-                  )
-                  Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                      text = task.title,
-                      style = MaterialTheme.typography.titleSmall,
-                      color = MaterialTheme.colorScheme.onSecondaryContainer,
-                      maxLines = 1,
-                      overflow = TextOverflow.Ellipsis,
-                    )
-                    Text(
-                      text = "${task.code} · ${task.category.label}",
-                      style = MonoTokenTextStyle,
-                      color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.78f),
-                      maxLines = 1,
-                    )
-                  }
-                  Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                  )
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // 4. App- & Vorschau-Einstellungen
+    // 3. Bedienkomfort & Barrierefreiheit
     item {
       Column(
         modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp).padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
       ) {
         Text(
-          text = "3. System- & Vorschau-Optionen",
+          text = "3. Bedienkomfort & Barrierefreiheit",
           style = MaterialTheme.typography.titleMedium,
           color = MaterialTheme.colorScheme.onBackground,
         )
         Card(
           shape = MaterialTheme.shapes.large,
           colors =
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.90f)),
           border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)),
         ) {
           Column(modifier = Modifier.fillMaxWidth()) {
-            StudioToggleRow(
-              icon = Icons.Outlined.Business,
-              title = "AI-DeviceCare+ Business-Ansicht",
-              subtitle = "Zeigt den internen M4-Enterprise-Prototyp im Prüf-Tab",
-              checked = uiState.enterprisePreviewMode,
-              onCheckedChange = onToggleEnterprisePreview,
-              testTag = "pref_enterprise_switch",
-            )
-            HorizontalDivider(
-              modifier = Modifier.padding(horizontal = 16.dp),
-              color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
-            )
             StudioToggleRow(
               icon = Icons.Outlined.Compress,
               title = "Kompakte Abstände",
@@ -373,21 +285,21 @@ fun DesignSystemScreen(
       }
     }
 
-    // 5. Typografie & M3 Komponenten Vorschau
+    // 4. Schrift & Vorschau
     item {
       Column(
         modifier = Modifier.fillMaxWidth().widthIn(max = 860.dp).padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
       ) {
         Text(
-          text = "4. Typografie & M3 Komponenten",
+          text = "4. Schriftbild & Steuerelemente",
           style = MaterialTheme.typography.titleMedium,
           color = MaterialTheme.colorScheme.onBackground,
         )
         Card(
           shape = MaterialTheme.shapes.large,
           colors =
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.90f)),
           border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)),
         ) {
           Column(
@@ -395,22 +307,22 @@ fun DesignSystemScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
           ) {
             Text(
-              text = "Display · Space Grotesk",
+              text = "Überschriften · Hoher Kontrast",
               style = MonoTokenTextStyle,
               color = MaterialTheme.colorScheme.primary,
             )
             Text(
-              text = "Evidenz vor Urteil",
+              text = "Klarheit vor Vermutung",
               style = MaterialTheme.typography.displaySmall,
               color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-              text = "Body · Plus Jakarta Sans — Skalierbar in sp für 200% Android-Schriftgröße.",
+              text = "Fließtext passt sich automatisch an deine Android-Schriftgröße bis 200 % an.",
               style = MaterialTheme.typography.bodyLarge,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-              text = "Mono · JetBrains Mono — devicecare-observation/1 | TTL = 60_000L",
+              text = "Messwerte · Klare Darstellung für Prozent, Temperatur und Zeit",
               style = MonoTokenTextStyle,
               color = MaterialTheme.colorScheme.onSurface,
             )
@@ -487,7 +399,7 @@ fun DesignSystemScreen(
         )
         Text(
           text =
-            "Alle Farben, Typografie-Tokens und Ecken-Radien (${uiState.preferences.cornerStyle.label}) sind konsistent auf AI-DeviceCare angewendet.",
+            "Alle Farben, Schriftgrößen und Ecken-Rundungen (${uiState.preferences.cornerStyle.label}) sind konsistent auf DeviceCare KI angewendet.",
           style = MaterialTheme.typography.bodyMedium,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

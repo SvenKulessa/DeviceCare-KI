@@ -153,7 +153,7 @@ object InstalledAppsExporter {
       .put("exportedAtMillis", exportedAtMillis)
       .put(
         "scopeNote",
-        "Alle vom Android-System sichtbaren installierten Apps ohne QUERY_ALL_PACKAGES (lokaler Export)",
+        "Alle vom Android-System für App-Übersichten freigegebenen installierten Apps (lokaler Export)",
       )
       .put("includeSystemApps", includeSystemApps)
       .put("totalVisiblePackages", scanResult.visiblePackageCount)
@@ -232,10 +232,10 @@ object InstalledAppsExporter {
     return Intent(Intent.ACTION_SEND).apply {
       type = format.mimeType
       putExtra(Intent.EXTRA_STREAM, contentUri)
-      putExtra(Intent.EXTRA_SUBJECT, "AI-DeviceCare App-Liste ($exportedCount Apps, $scopeLabel)")
+      putExtra(Intent.EXTRA_SUBJECT, "DeviceCare KI App-Liste ($exportedCount Apps, $scopeLabel)")
       putExtra(
         Intent.EXTRA_TEXT,
-        "Lokaler Export von $exportedCount OS-sichtbaren Apps ($scopeLabel, ohne QUERY_ALL_PACKAGES).",
+        "Lokaler Export von $exportedCount vom System freigegebenen Apps ($scopeLabel).",
       )
       clipData = ClipData.newRawUri(file.name, contentUri)
       addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)

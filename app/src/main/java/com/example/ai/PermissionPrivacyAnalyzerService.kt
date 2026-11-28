@@ -127,7 +127,7 @@ class GeminiPermissionPrivacyAnalyzerService : PermissionPrivacyAnalyzerService 
       systemInstruction =
         content {
           text(
-            "Du bist ein spezialisierter Android-Datenschutzberater in AI-DeviceCare. " +
+            "Du bist ein spezialisierter Android-Datenschutzberater in DeviceCare KI. " +
               "Analysiere ausschließlich die übergebene Liste gewährter gefährlicher Laufzeitberechtigungen " +
               "und liefere präzise, praxisnahe und ruhige Empfehlungen auf Deutsch. " +
               "Wichtig: Eine gewährte Berechtigung ist kein Malware-Beweis; erkläre sachlich, warum eine " +
@@ -148,7 +148,7 @@ class GeminiPermissionPrivacyAnalyzerService : PermissionPrivacyAnalyzerService 
       withTimeout(PRIVACY_ANALYSIS_TIMEOUT_MILLIS) { model.generateContent(digest.promptText) }
     val jsonString =
       response.text?.takeIf { it.isNotBlank() }
-        ?: throw IllegalStateException("Gemini hat eine leere Datenschutz-Analyse zurückgegeben.")
+        ?: throw IllegalStateException("Der KI-Berater hat eine leere Datenschutz-Analyse zurückgegeben.")
     return parsePrivacyAnalysisJson(
       jsonString = jsonString,
       analyzedAppCount = digest.analyzedAppCount,

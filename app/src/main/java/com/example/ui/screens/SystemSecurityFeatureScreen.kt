@@ -56,7 +56,7 @@ fun SystemSecurityFeatureScreen(onBack: () -> Unit) {
           } catch (cancelled: CancellationException) {
             throw cancelled
           } catch (_: RuntimeException) {
-            evidence = listOf("Geräteabfrage fehlgeschlagen: NOT_PROVEN. Keine Daten gespeichert.")
+            evidence = listOf("Geräteabfrage fehlgeschlagen. Keine Daten gespeichert.")
           } finally {
             busy = false
           }

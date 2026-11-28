@@ -137,7 +137,7 @@ fun BatteryHealthTrendChartCard(
               modifier = Modifier.semantics { heading() },
             )
             Text(
-              text = "Live-Trend aus BatteryManager",
+              text = "Live-Trend aus Gerätesensoren",
               style = MaterialTheme.typography.labelSmall,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -208,7 +208,7 @@ fun BatteryHealthTrendChartCard(
             )
             Text(
               text =
-                "Tippe oben auf Aktualisieren oder lass das Dashboard geöffnet — jede Live-Änderung von Android BatteryManager ergänzt den Verlauf.",
+                "Tippe oben auf Aktualisieren oder lass das Dashboard geöffnet — jede Live-Änderung des Systems ergänzt den Verlauf.",
               style = MaterialTheme.typography.bodySmall,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

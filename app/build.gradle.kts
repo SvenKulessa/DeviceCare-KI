@@ -14,7 +14,7 @@ val playIntegrityEnabled = providers.gradleProperty("devicecare.playIntegrity")
 
 android {
   namespace = "com.example"
-  compileSdk { version = release(36) { minorApiLevel = 1 } }
+  compileSdk { version = release(37) { minorApiLevel = 2 } }
 
   defaultConfig {
     applicationId = "com.aistudio.formwerk.vktmrx"

@@ -81,6 +81,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
@@ -280,7 +281,7 @@ fun PrivacySummaryScreen(
 
   Scaffold(
     modifier = modifier.fillMaxSize().testTag("privacy_summary_screen"),
-    containerColor = MaterialTheme.colorScheme.background,
+    containerColor = Color.Transparent,
     topBar = {
       TopAppBar(
         title = {
@@ -328,7 +329,7 @@ fun PrivacySummaryScreen(
         },
         colors =
           TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.88f)
           ),
       )
     },
@@ -835,7 +836,7 @@ private fun PermissionsAggregationCard(
       if (!report.hasPermissionScan) {
         Text(
           text =
-            "Noch kein App-Berechtigungsscan in dieser Sitzung gestartet (NOT_PROVEN). Tippe oben auf Komplett-Check, um gewährte Laufzeitrechte sichtbar zu machen.",
+            "Noch kein App-Berechtigungsscan in dieser Sitzung gestartet. Tippe oben auf Komplett-Check, um gewährte Laufzeitrechte sichtbar zu machen.",
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -963,7 +964,7 @@ private fun PrivacySummaryExportDialog(
       ) {
         Text(
           text =
-            "Erzeugt lokal eine Export-Datei aller über Android <queries> sichtbaren installierten Apps (ohne QUERY_ALL_PACKAGES und ohne Speicherberechtigung) und öffnet den Android-Teilen-Dialog.",
+            "Erzeugt lokal eine Export-Datei aller vom System bereitgestellten installierten Apps (ohne gesonderte Speicherberechtigung) und öffnet den Android-Teilen-Dialog.",
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -1189,7 +1190,7 @@ private fun SecurityCheckAggregationCard(
       if (!report.hasSecurityCheck) {
         Text(
           text =
-            "Noch kein System- & Google-Sicherheitscheck ausgeführt (NOT_PROVEN). Er liest lokal Android-Version, Sicherheitspatch, Play-Dienste und WebView aus.",
+            "Noch kein System- & Google-Sicherheitscheck ausgeführt. Er liest lokal Android-Version, Sicherheitspatch, Play-Dienste und WebView aus.",
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -1205,26 +1206,26 @@ private fun SecurityCheckAggregationCard(
           )
         }
 
-        SecurityKeyValueRow("Betriebssystem", report.androidReleaseLabel ?: "NOT_PROVEN")
+        SecurityKeyValueRow("Betriebssystem", report.androidReleaseLabel ?: "Nicht auslesbar")
         SecurityKeyValueRow(
           "Sicherheitspatch",
           "${report.securityPatch ?: "nicht verfügbar"} · ${report.securitySnapshotStatusLabel}",
         )
         SecurityKeyValueRow(
           "Google Play-Dienste",
-          report.playServicesVersion ?: "NOT_PROVEN (nicht auslesbar)",
+          report.playServicesVersion ?: "Nicht auslesbar",
         )
         SecurityKeyValueRow(
           "Google Play Store",
-          report.playStoreVersion ?: "NOT_PROVEN (nicht auslesbar)",
+          report.playStoreVersion ?: "Nicht auslesbar",
         )
         SecurityKeyValueRow(
           "WebView-Provider",
-          report.webViewVersion ?: "NOT_PROVEN (nicht auslesbar)",
+          report.webViewVersion ?: "Nicht auslesbar",
         )
         SecurityKeyValueRow(
           "Play Protect / OEM-OTA",
-          "NOT_PROVEN (nur manuell prüfbar)",
+          "Lokal nicht bestätigt (nur manuell prüfbar)",
         )
       }
 
@@ -1299,7 +1300,7 @@ private fun GeminiInsightSummaryCard(
           tint = MaterialTheme.colorScheme.secondary,
         )
         Text(
-          text = "Gemini Datenschutz-Einordnung ($analyzedAppCount Apps · $suggestionCount Tipps)",
+          text = "KI-Datenschutz-Einordnung ($analyzedAppCount Apps · $suggestionCount Tipps)",
           style = MaterialTheme.typography.titleSmall,
           color = MaterialTheme.colorScheme.onSurface,
         )
@@ -1489,7 +1490,7 @@ private fun GeminiPostureNextStepsCard(
           ) {
             Icon(
               imageVector = Icons.Filled.Close,
-              contentDescription = "Gemini-Auswertung ausblenden",
+              contentDescription = "KI-Auswertung ausblenden",
             )
           }
         }
@@ -1499,7 +1500,7 @@ private fun GeminiPostureNextStepsCard(
         PostureNextStepsState.Idle -> {
           Text(
             text =
-              "Lass Gemini den aktuellen Gerätestatus aus Berechtigungen und Systemcheck in verständlicher Alltagssprache einordnen und priorisierte 'Nächste Schritte' erstellen.",
+              "Lass den KI-Berater den aktuellen Gerätestatus aus Berechtigungen und Systemcheck in verständlicher Alltagssprache einordnen und priorisierte 'Nächste Schritte' erstellen.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
           )
@@ -1532,7 +1533,7 @@ private fun GeminiPostureNextStepsCard(
             CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.5.dp)
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
               Text(
-                text = "Gemini wertet Gerätestatus aus …",
+                text = "KI-Berater wertet Gerätestatus aus …",
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurface,
               )

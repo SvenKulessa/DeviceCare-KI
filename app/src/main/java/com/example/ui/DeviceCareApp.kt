@@ -12,16 +12,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.HealthAndSafety
 import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.outlined.AccountTree
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.outlined.Apps
-import androidx.compose.material.icons.outlined.Checklist
+import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.HealthAndSafety
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -36,39 +36,44 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.example.R
 import com.example.ai.AiAdvisorViewModel
+import com.example.ui.components.QuickNavigationSheet
+import com.example.ui.components.UniverseCosmicBackground
+import com.example.ui.components.UniverseDiagnosticCategory
 import com.example.ui.screens.AiAdvisorScreen
 import com.example.ui.screens.AppPermissionsScreen
-import com.example.ui.screens.ArchitectureScreen
 import com.example.ui.screens.BatteryDashboardScreen
 import com.example.ui.screens.CloudSyncScreen
 import com.example.ui.screens.DesignSystemScreen
 import com.example.ui.screens.InspectionScreen
 import com.example.ui.screens.PrivacyPolicyScreen
 import com.example.ui.screens.PrivacySummaryScreen
+import com.example.ui.screens.RethinkRecommendationsScreen
 import com.example.ui.screens.SystemSecurityFeatureScreen
-import com.example.ui.screens.RoadmapScreen
-import com.example.ui.screens.TaskDetailScreen
 import com.example.ui.theme.FormwerkTheme
 import kotlinx.coroutines.launch
 
@@ -79,14 +84,10 @@ object Routes {
   const val ROUTE_CLOUD_SYNC = "cloud_sync"
   const val ROUTE_SYSTEM_SECURITY = "system_security"
   const val ROUTE_PRIVACY_SUMMARY = "privacy_summary"
+  const val ROUTE_RETHINK_GUIDE = "rethink_guide"
   const val ROUTE_APPS = "apps"
-  const val ROUTE_ROADMAP = "roadmap"
-  const val ROUTE_ARCHITECTURE = "architecture"
   const val ROUTE_DESIGN = "design"
   const val ROUTE_PRIVACY_POLICY = "privacy_policy"
-  const val ROUTE_TASK_DETAIL = "task_detail/{taskId}"
-
-  fun taskDetail(taskId: String): String = "task_detail/$taskId"
 }
 
 private data class NavDestinationItem(
@@ -114,18 +115,18 @@ private val topLevelDestinations =
       testTag = "nav_apps",
     ),
     NavDestinationItem(
-      route = Routes.ROUTE_ROADMAP,
-      labelRes = R.string.nav_roadmap,
-      selectedIcon = Icons.Filled.Checklist,
-      unselectedIcon = Icons.Outlined.Checklist,
-      testTag = "nav_roadmap",
+      route = Routes.ROUTE_RETHINK_GUIDE,
+      labelRes = R.string.nav_network,
+      selectedIcon = Icons.Filled.Dns,
+      unselectedIcon = Icons.Outlined.Dns,
+      testTag = "nav_network",
     ),
     NavDestinationItem(
-      route = Routes.ROUTE_ARCHITECTURE,
-      labelRes = R.string.nav_architecture,
-      selectedIcon = Icons.Filled.AccountTree,
-      unselectedIcon = Icons.Outlined.AccountTree,
-      testTag = "nav_architecture",
+      route = Routes.ROUTE_PRIVACY_SUMMARY,
+      labelRes = R.string.nav_cockpit,
+      selectedIcon = Icons.Filled.Shield,
+      unselectedIcon = Icons.Outlined.Shield,
+      testTag = "nav_cockpit",
     ),
     NavDestinationItem(
       route = Routes.ROUTE_DESIGN,
@@ -151,11 +152,23 @@ fun DeviceCareApp(
   val snackbarHostState = remember { SnackbarHostState() }
   val scope = rememberCoroutineScope()
   val haptics = LocalHapticFeedback.current
+  var showQuickNavSheet by remember { mutableStateOf(false) }
+  var selectedUniverseCategory by remember {
+    mutableStateOf(UniverseDiagnosticCategory.SYSTEM_HEALTH)
+  }
+  var planetPulseNonce by remember { mutableIntStateOf(0) }
 
   fun performHaptic() {
     if (uiState.preferences.hapticPreview) {
       haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
     }
+  }
+
+  fun pulsePlanet(category: UniverseDiagnosticCategory? = null) {
+    if (category != null) {
+      selectedUniverseCategory = category
+    }
+    planetPulseNonce += 1
   }
 
   fun showMessage(message: String) {
@@ -167,10 +180,33 @@ fun DeviceCareApp(
 
   fun navigateTopLevel(route: String) {
     performHaptic()
+    val mapped =
+      when (route) {
+        Routes.ROUTE_INSPECTION -> UniverseDiagnosticCategory.SYSTEM_HEALTH
+        Routes.ROUTE_APPS -> UniverseDiagnosticCategory.APPS_SECURITY
+        Routes.ROUTE_RETHINK_GUIDE -> UniverseDiagnosticCategory.NETWORK_RETHINK
+        Routes.ROUTE_PRIVACY_SUMMARY -> UniverseDiagnosticCategory.PRIVACY_COCKPIT
+        else -> null
+      }
+    pulsePlanet(mapped)
     navController.navigate(route) {
       popUpTo(navController.graph.findStartDestination().id) { saveState = true }
       launchSingleTop = true
       restoreState = true
+    }
+  }
+
+  fun launchUniverseCategoryAction(category: UniverseDiagnosticCategory) {
+    performHaptic()
+    pulsePlanet(category)
+    when (category) {
+      UniverseDiagnosticCategory.SYSTEM_HEALTH -> viewModel.startManualInspection()
+      UniverseDiagnosticCategory.BATTERY -> navController.navigate(Routes.ROUTE_BATTERY)
+      UniverseDiagnosticCategory.APPS_SECURITY -> navigateTopLevel(Routes.ROUTE_APPS)
+      UniverseDiagnosticCategory.NETWORK_RETHINK -> navigateTopLevel(Routes.ROUTE_RETHINK_GUIDE)
+      UniverseDiagnosticCategory.PRIVACY_COCKPIT -> navigateTopLevel(Routes.ROUTE_PRIVACY_SUMMARY)
+      UniverseDiagnosticCategory.AI_ADVISOR -> navController.navigate(Routes.ROUTE_AI_ADVISOR)
+      UniverseDiagnosticCategory.CLOUD_NOTES -> navController.navigate(Routes.ROUTE_CLOUD_SYNC)
     }
   }
 
@@ -190,15 +226,23 @@ fun DeviceCareApp(
       BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val useNavRail = maxWidth >= 600.dp
 
+        UniverseCosmicBackground(
+          activeCategory = selectedUniverseCategory,
+          planetPulseNonce = planetPulseNonce,
+          themeMode = uiState.preferences.themeMode,
+          modifier = Modifier.fillMaxSize(),
+        )
+
         Scaffold(
           modifier = Modifier.fillMaxSize(),
+          containerColor = Color.Transparent,
           contentWindowInsets = WindowInsets.safeDrawing,
           snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
           bottomBar = {
             if (!useNavRail && showBottomOrRailNav) {
               NavigationBar(
                 windowInsets = WindowInsets.navigationBars,
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.90f),
               ) {
                 topLevelDestinations.forEach { dest ->
                   val selected =
@@ -214,7 +258,10 @@ fun DeviceCareApp(
                       )
                     },
                     label = { Text(text = label, maxLines = 1) },
-                    modifier = Modifier.testTag(dest.testTag),
+                    modifier =
+                      Modifier.testTag(dest.testTag).semantics {
+                        stateDescription = if (selected) "Ausgewählt" else "Nicht ausgewählt"
+                      },
                   )
                 }
               }
@@ -225,7 +272,7 @@ fun DeviceCareApp(
             if (useNavRail && showBottomOrRailNav) {
               NavigationRail(
                 modifier = Modifier.fillMaxHeight(),
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.90f),
               ) {
                 Spacer(modifier = Modifier.weight(1f))
                 topLevelDestinations.forEach { dest ->
@@ -242,7 +289,10 @@ fun DeviceCareApp(
                       )
                     },
                     label = { Text(text = label, maxLines = 1) },
-                    modifier = Modifier.testTag(dest.testTag),
+                    modifier =
+                      Modifier.testTag(dest.testTag).semantics {
+                        stateDescription = if (selected) "Ausgewählt" else "Nicht ausgewählt"
+                      },
                   )
                 }
                 Spacer(modifier = Modifier.weight(1f))
@@ -264,39 +314,61 @@ fun DeviceCareApp(
                     uiState = uiState,
                     onStartInspection = {
                       performHaptic()
+                      pulsePlanet(UniverseDiagnosticCategory.SYSTEM_HEALTH)
                       viewModel.startManualInspection()
                     },
                     onCycleThemeMode = {
                       performHaptic()
+                      pulsePlanet()
                       viewModel.cycleThemeMode()
                     },
                     onSettingsMessage = viewModel::setSettingsMessage,
                     onOpenBatteryMonitor = {
                       performHaptic()
+                      pulsePlanet(UniverseDiagnosticCategory.BATTERY)
                       navController.navigate(Routes.ROUTE_BATTERY)
                     },
                     onOpenAiAdvisor = {
                       performHaptic()
+                      pulsePlanet(UniverseDiagnosticCategory.AI_ADVISOR)
                       navController.navigate(Routes.ROUTE_AI_ADVISOR)
                     },
                     onOpenCloudSync = {
                       performHaptic()
+                      pulsePlanet(UniverseDiagnosticCategory.CLOUD_NOTES)
                       navController.navigate(Routes.ROUTE_CLOUD_SYNC)
                     },
                     onOpenSystemSecurity = {
                       performHaptic()
+                      pulsePlanet(UniverseDiagnosticCategory.PRIVACY_COCKPIT)
                       navController.navigate(Routes.ROUTE_SYSTEM_SECURITY)
                     },
-                    onOpenPrivacySummary = {
-                      performHaptic()
-                      navController.navigate(Routes.ROUTE_PRIVACY_SUMMARY)
-                    },
+                    onOpenPrivacySummary = { navigateTopLevel(Routes.ROUTE_PRIVACY_SUMMARY) },
                     onOpenAppPermissions = { navigateTopLevel(Routes.ROUTE_APPS) },
-                    onOpenRoadmap = { navigateTopLevel(Routes.ROUTE_ROADMAP) },
                     onOpenPrivacyPolicy = {
                       performHaptic()
                       navController.navigate(Routes.ROUTE_PRIVACY_POLICY)
                     },
+                    onOpenRethinkGuide = { navigateTopLevel(Routes.ROUTE_RETHINK_GUIDE) },
+                    onOpenQuickNav = {
+                      performHaptic()
+                      pulsePlanet()
+                      showQuickNavSheet = true
+                    },
+                    selectedUniverseCategory = selectedUniverseCategory,
+                    planetPulseNonce = planetPulseNonce,
+                    onSelectUniverseCategory = { cat ->
+                      performHaptic()
+                      pulsePlanet(cat)
+                    },
+                    onPlanetTap = {
+                      performHaptic()
+                      val nextIdx =
+                        (selectedUniverseCategory.ordinal + 1) %
+                          UniverseDiagnosticCategory.entries.size
+                      pulsePlanet(UniverseDiagnosticCategory.entries[nextIdx])
+                    },
+                    onTriggerUniverseAction = ::launchUniverseCategoryAction,
                   )
                 }
 
@@ -304,8 +376,16 @@ fun DeviceCareApp(
                   BatteryDashboardScreen(
                     uiState = uiState,
                     onBack = { navController.popBackStack() },
-                    onRefresh = viewModel::refreshBatteryMonitor,
+                    onRefresh = {
+                      pulsePlanet(UniverseDiagnosticCategory.BATTERY)
+                      viewModel.refreshBatteryMonitor(it)
+                    },
                     onShowSnackbar = ::showMessage,
+                    onToggleLowBatteryAlerts = { enabled ->
+                      performHaptic()
+                      pulsePlanet(UniverseDiagnosticCategory.BATTERY)
+                      viewModel.setLowBatteryAlertsEnabled(enabled)
+                    },
                   )
                 }
 
@@ -317,6 +397,7 @@ fun DeviceCareApp(
                     onBack = { navController.popBackStack() },
                     onSendPrompt = { prompt ->
                       performHaptic()
+                      pulsePlanet(UniverseDiagnosticCategory.AI_ADVISOR)
                       aiAdvisorViewModel.sendPrompt(
                         rawPrompt = prompt,
                         batterySnapshot = uiState.batterySnapshot,
@@ -357,10 +438,12 @@ fun DeviceCareApp(
                     onBack = { navController.popBackStack() },
                     onRunCombinedCheck = {
                       performHaptic()
+                      pulsePlanet(UniverseDiagnosticCategory.PRIVACY_COCKPIT)
                       viewModel.runPrivacyAndSecurityOverview()
                     },
                     onAnalyzePostureWithGemini = { summaryReport ->
                       performHaptic()
+                      pulsePlanet(UniverseDiagnosticCategory.AI_ADVISOR)
                       aiAdvisorViewModel.generatePostureNextSteps(
                         summaryReport = summaryReport,
                         batterySnapshot = uiState.batterySnapshot,
@@ -382,8 +465,18 @@ fun DeviceCareApp(
                     onShowSnackbar = ::showMessage,
                     onScanInstalledApps = {
                       performHaptic()
+                      pulsePlanet(UniverseDiagnosticCategory.APPS_SECURITY)
                       viewModel.startInstalledAppsScan()
                     },
+                  )
+                }
+
+                composable(Routes.ROUTE_RETHINK_GUIDE) {
+                  RethinkRecommendationsScreen(
+                    uiState = uiState,
+                    onBack = { navController.popBackStack() },
+                    onOpenAppPermissions = { navigateTopLevel(Routes.ROUTE_APPS) },
+                    onShowSnackbar = ::showMessage,
                   )
                 }
 
@@ -393,10 +486,12 @@ fun DeviceCareApp(
                     privacyAnalysisState = privacyAnalysisState,
                     onStartScan = {
                       performHaptic()
+                      pulsePlanet(UniverseDiagnosticCategory.APPS_SECURITY)
                       viewModel.startInstalledAppsScan()
                     },
                     onAnalyzePrivacy = {
                       performHaptic()
+                      pulsePlanet(UniverseDiagnosticCategory.AI_ADVISOR)
                       aiAdvisorViewModel.analyzePermissionsPrivacy(uiState.installedAppsScanResult)
                     },
                     onClearPrivacyAnalysis = {
@@ -417,68 +512,34 @@ fun DeviceCareApp(
                       viewModel.toggleAppSectionCollapsed(section)
                     },
                     onShowSnackbar = ::showMessage,
-                  )
-                }
-
-                composable(Routes.ROUTE_ROADMAP) {
-                  RoadmapScreen(
-                    uiState = uiState,
-                    onSearchQueryChange = viewModel::updateSearchQuery,
-                    onSelectCategory = { cat ->
+                    onSelectOriginFilter = { origin ->
                       performHaptic()
-                      viewModel.selectCategory(cat)
+                      viewModel.selectAppOriginFilter(origin)
                     },
-                    onSelectStatusFilter = { status ->
+                    onOpenRethinkGuide = { navigateTopLevel(Routes.ROUTE_RETHINK_GUIDE) },
+                    onToggleAppRethinkRule = { pkg, ruleId, enabled ->
                       performHaptic()
-                      viewModel.selectStatusFilter(status)
+                      viewModel.setAppRethinkRuleEnabled(pkg, ruleId, enabled)
                     },
-                    onOpenTaskDetail = { taskId ->
+                    onResetAppRethinkRules = { pkg ->
                       performHaptic()
-                      navController.navigate(Routes.taskDetail(taskId))
+                      viewModel.resetAppRethinkRules(pkg)
                     },
-                    onToggleBookmark = { taskId ->
-                      performHaptic()
-                      viewModel.toggleBookmark(taskId)
-                    },
-                  )
-                }
-
-                composable(Routes.ROUTE_ARCHITECTURE) {
-                  ArchitectureScreen(
-                    uiState = uiState,
-                    onSelectTab = { tab ->
-                      performHaptic()
-                      viewModel.selectArchitectureTab(tab)
-                    },
-                    onToggleQualitySha = {
-                      performHaptic()
-                      viewModel.toggleQualityShaSimulation()
-                    },
-                    onToggleScoringMissing = {
-                      performHaptic()
-                      viewModel.toggleScoringMissingSignalSimulation()
-                    },
-                    onSelectFixture = { id ->
-                      performHaptic()
-                      viewModel.selectFixture(id)
-                    },
-                    onChangeStatisticalFp = viewModel::setStatisticalFalsePositives,
                   )
                 }
 
                 composable(Routes.ROUTE_DESIGN) {
-                  val bookmarkedTasks =
-                    uiState.allTasks.filter { it.id in uiState.preferences.bookmarkedTaskIds }
                   DesignSystemScreen(
                     uiState = uiState,
-                    bookmarkedTasks = bookmarkedTasks,
                     onSelectPalette = { palette ->
                       performHaptic()
+                      pulsePlanet()
                       viewModel.setPalette(palette)
                       showMessage("Palette: ${palette.displayName}")
                     },
                     onSelectThemeMode = { mode ->
                       performHaptic()
+                      pulsePlanet()
                       viewModel.setThemeMode(mode)
                     },
                     onSelectCornerStyle = { style ->
@@ -490,16 +551,9 @@ fun DeviceCareApp(
                       viewModel.setCompactDensity(enabled)
                     },
                     onToggleHapticPreview = { enabled -> viewModel.setHapticPreview(enabled) },
-                    onToggleEnterprisePreview = { enabled ->
-                      performHaptic()
-                      viewModel.setEnterprisePreviewMode(enabled)
-                    },
-                    onOpenTaskDetail = { taskId ->
-                      performHaptic()
-                      navController.navigate(Routes.taskDetail(taskId))
-                    },
                     onResetDefaults = {
                       performHaptic()
+                      pulsePlanet()
                       viewModel.resetDesignDefaults()
                       showMessage("Standarddesign wiederhergestellt")
                     },
@@ -509,32 +563,27 @@ fun DeviceCareApp(
                     },
                   )
                 }
-
-                composable(
-                  route = Routes.ROUTE_TASK_DETAIL,
-                  arguments = listOf(navArgument("taskId") { type = NavType.StringType }),
-                ) { backStackEntry ->
-                  val taskId = backStackEntry.arguments?.getString("taskId").orEmpty()
-                  val task = viewModel.getTaskById(taskId) ?: uiState.allTasks.first()
-                  TaskDetailScreen(
-                    task = task,
-                    isBookmarked = task.id in uiState.preferences.bookmarkedTaskIds,
-                    isLocallyVerified = task.id in uiState.preferences.localVerifiedTaskIds,
-                    onBack = { navController.popBackStack() },
-                    onToggleBookmark = {
-                      performHaptic()
-                      viewModel.toggleBookmark(task.id)
-                    },
-                    onToggleLocalVerified = {
-                      performHaptic()
-                      viewModel.toggleLocalTaskVerified(task.id)
-                    },
-                  )
-                }
               }
             }
           }
         }
+      }
+
+      if (showQuickNavSheet) {
+        QuickNavigationSheet(
+          currentRoute = currentDestination?.route,
+          onSelectEntry = { entry ->
+            showQuickNavSheet = false
+            if (entry.isTopLevel) {
+              navigateTopLevel(entry.route)
+            } else {
+              performHaptic()
+              pulsePlanet()
+              navController.navigate(entry.route) { launchSingleTop = true }
+            }
+          },
+          onDismiss = { showQuickNavSheet = false },
+        )
       }
     }
   }

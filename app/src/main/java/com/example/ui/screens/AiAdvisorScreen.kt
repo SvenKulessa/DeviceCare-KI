@@ -57,6 +57,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
@@ -130,7 +131,7 @@ fun AiAdvisorScreen(
 
   Scaffold(
     modifier = modifier.fillMaxSize().imePadding().testTag("ai_advisor_screen"),
-    containerColor = MaterialTheme.colorScheme.background,
+    containerColor = Color.Transparent,
     topBar = {
       TopAppBar(
         title = {
@@ -142,7 +143,7 @@ fun AiAdvisorScreen(
               overflow = TextOverflow.Ellipsis,
             )
             Text(
-              text = "Gemini 3.8 Flash · Firebase AI Logic",
+              text = "On-Demand Beratung · Nur bei Eingabe",
               style = MaterialTheme.typography.labelSmall,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -174,14 +175,14 @@ fun AiAdvisorScreen(
         },
         colors =
           TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.88f)
           ),
       )
     },
     bottomBar = {
       Surface(
         tonalElevation = 2.dp,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        color = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.92f),
       ) {
         Column(modifier = Modifier.fillMaxWidth()) {
           HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
@@ -215,7 +216,7 @@ fun AiAdvisorScreen(
               } else {
                 Icon(
                   imageVector = Icons.AutoMirrored.Filled.Send,
-                  contentDescription = "An Gemini senden",
+                  contentDescription = "Frage senden",
                 )
               }
             }
@@ -260,7 +261,7 @@ fun AiAdvisorScreen(
               }
               Column(modifier = Modifier.weight(1f)) {
                 Text(
-                  text = "Datenschutz-gesteuerte Gemini-Hilfe",
+                  text = "Datenschutz-orientierte KI-Hilfe",
                   style = MaterialTheme.typography.titleMedium,
                   color = MaterialTheme.colorScheme.onSurface,
                   modifier = Modifier.semantics { heading() },
@@ -376,7 +377,7 @@ fun AiAdvisorScreen(
                 ) {
                   CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                   Text(
-                    text = if (liveText == null) "Gemini denkt nach…" else "Gemini antwortet…",
+                    text = if (liveText == null) "KI-Berater denkt nach…" else "KI-Berater antwortet…",
                     style = MonoTokenTextStyle,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                   )
@@ -450,7 +451,7 @@ private fun AiChatBubble(message: AiChatMessage) {
         verticalArrangement = Arrangement.spacedBy(4.dp),
       ) {
         Text(
-          text = if (message.isUser) "Du" else "Gemini KI-Berater",
+          text = if (message.isUser) "Du" else "KI-Berater",
           style = MonoTokenTextStyle,
           color =
             if (message.isUser) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f)
