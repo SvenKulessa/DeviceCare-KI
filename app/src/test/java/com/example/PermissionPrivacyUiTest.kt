@@ -1,5 +1,7 @@
 package com.example
 
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -160,8 +162,15 @@ class PermissionPrivacyUiTest {
       .performScrollToNode(hasTestTag("privacy_analysis_error"))
     composeTestRule.onNodeWithTag("privacy_analysis_error").assertExists()
     composeTestRule.onNodeWithText("HTTP 403 App Check token missing").assertExists()
-    composeTestRule.onNodeWithTag("analyze_privacy_button").performClick()
-    assertEquals(1, retryClicks)
+    // The error surface can be visible while its retry button is below the viewport.
+    // Exercise an actual visible, enabled touch target before checking the callback.
+    composeTestRule
+      .onNodeWithTag("analyze_privacy_button")
+      .performScrollTo()
+      .assertIsDisplayed()
+      .assertIsEnabled()
+      .performClick()
+    composeTestRule.runOnIdle { assertEquals(1, retryClicks) }
   }
 
   @Test

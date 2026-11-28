@@ -34,13 +34,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.R
-import java.util.Locale
 
 /** Bundled offline privacy notice. Keep in sync with docs/PLAY-M1-PRIVACY-{DE,EN}.md. */
 private data class PrivacySection(val tag: String, val title: String, val body: String)
@@ -161,7 +161,7 @@ fun PrivacyPolicyScreen(
   modifier: Modifier = Modifier,
 ) {
   BackHandler(onBack = onBack)
-  val german = Locale.getDefault().language.equals("de", ignoreCase = true)
+  val german = LocalConfiguration.current.locales[0].language.equals("de", ignoreCase = true)
   val sections = privacySections(german)
 
   Scaffold(
